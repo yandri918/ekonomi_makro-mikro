@@ -19,15 +19,15 @@ T = {
         'intro': "Visualize how firms minimize costs by choosing the optimal combination of **Capital (K)** and **Labor (L)**.",
         'theory': "**Theory**: The optimal point is where the slope of the Isoquant (MRTS) equals the slope of the Isocost line ($w/r$).",
         'params': "Production Parameters (Cobb-Douglas)",
-        'wage': "Wage Rate (w)",
-        'rent': "Rental Rate (r)",
+        'wage': "Wage Rate (w) - Rp",
+        'rent': "Rental Rate (r) - Rp",
         'target_q': "Target Quantity (Q*)",
         'alpha': "Output Elast. Capital (α)",
         'beta': "Output Elast. Labor (β)",
         'cost_min_res': "💰 Cost Minimization Results",
         'opt_k': "Optimal Capital (K*)",
         'opt_l': "Optimal Labor (L*)",
-        'min_c': "Minimum Cost ($)",
+        'min_c': "Minimum Cost (Rp)",
         'viz_title': "Isoquant & Isocost Visualization",
         'isoquant': "Isoquant (Q*)",
         'isocost': "Isocost (Min Cost)",
@@ -38,15 +38,15 @@ T = {
         'intro': "Visualisasikan bagaimana perusahaan meminimalkan biaya dengan memilih kombinasi optimal **Modal (K)** dan **Tenaga Kerja (L)**.",
         'theory': "**Teori**: Titik optimal adalah di mana kemiringan Isokuan (MRTS) sama dengan kemiringan garis Isocost ($w/r$).",
         'params': "Parameter Produksi (Cobb-Douglas)",
-        'wage': "Upah Tenaga Kerja (w)",
-        'rent': "Harga Sewa Modal (r)",
+        'wage': "Upah Tenaga Kerja (w) - Rp",
+        'rent': "Harga Sewa Modal (r) - Rp",
         'target_q': "Target Produksi (Q*)",
         'alpha': "Elast. Output Modal (α)",
         'beta': "Elast. Output TK (β)",
         'cost_min_res': "💰 Hasil Minimisasi Biaya",
         'opt_k': "Modal Optimal (K*)",
         'opt_l': "Tenaga Kerja Optimal (L*)",
-        'min_c': "Biaya Minimum ($)",
+        'min_c': "Biaya Minimum (Rp)",
         'viz_title': "Visualisasi Isokuan & Isocost",
         'isoquant': "Isokuan (Q*)",
         'isocost': "Isocost (Biaya Min)",
@@ -70,8 +70,8 @@ with col1:
     beta = st.slider(txt['beta'], 0.1, 0.9, 0.5, 0.1)
     
     st.markdown("---")
-    w = st.number_input(txt['wage'], value=20.0, step=1.0)
-    r = st.number_input(txt['rent'], value=30.0, step=1.0)
+    w = st.number_input(txt['wage'], value=20000.0, step=1000.0)
+    r = st.number_input(txt['rent'], value=30000.0, step=1000.0)
     Q_target = st.number_input(txt['target_q'], value=100.0, step=10.0)
 
 with col2:
@@ -134,6 +134,6 @@ with col2:
     r1, r2, r3 = st.columns(3)
     r1.metric(txt['opt_l'], f"{L_opt:.2f}")
     r2.metric(txt['opt_k'], f"{K_opt:.2f}")
-    r3.metric(txt['min_c'], f"${Min_Cost:,.2f}")
+    r3.metric(txt['min_c'], f"Rp {Min_Cost:,.2f}")
     
     st.info(f"{txt['theory']} \n\n MRTS = $\\frac{{MP_L}}{{MP_K}} = \\frac{{w}}{{r}}$")

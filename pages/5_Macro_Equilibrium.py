@@ -17,11 +17,11 @@ T = {
         'islm_title': "1. IS-LM Model (Short Run)",
         'islm_intro': "Interaction between the **Goods Market (IS)** and **Money Market (LM)**.",
         'fiscal_policy': "🏛️ Fiscal Policy (IS Curve)",
-        'G': "Govt Spending (G)",
-        'T': "Taxes (T)",
+        'G': "Govt Spending (G - Rp Trillion)",
+        'T': "Taxes (T - Rp Trillion)",
         'MPC': "Marginal Propensity to Consume (MPC)",
         'monetary_policy': "🏦 Monetary Policy (LM Curve)",
-        'Ms': "Money Supply (Ms)",
+        'Ms': "Money Supply (Ms - Rp Trillion)",
         'P': "Price Level (P)",
         'k': "Money Demand Sensitivity to Y (k)",
         'h': "Money Demand Sensitivity to r (h)",
@@ -49,11 +49,11 @@ T = {
         'islm_title': "1. Model IS-LM (Jangka Pendek)",
         'islm_intro': "Interaksi antara **Pasar Barang (IS)** dan **Pasar Uang (LM)**.",
         'fiscal_policy': "🏛️ Kebijakan Fiskal (Kurva IS)",
-        'G': "Belanja Pemerintah (G)",
-        'T': "Pajak (T)",
+        'G': "Belanja Pemerintah (G - Rp Triliun)",
+        'T': "Pajak (T - Rp Triliun)",
         'MPC': "Kecenderungan Mengkonsumsi (MPC)",
         'monetary_policy': "🏦 Kebijakan Moneter (Kurva LM)",
-        'Ms': "Jumlah Uang Beredar (Ms)",
+        'Ms': "Jumlah Uang Beredar (Ms - Rp Triliun)",
         'P': "Tingkat Harga (P)",
         'k': "Sensitivitas Permintaan Uang thd Y (k)",
         'h': "Sensitivitas Permintaan Uang thd r (h)",
@@ -206,11 +206,16 @@ with tab2:
         eq_p = alt.Chart(pd.DataFrame({'Y': [Y_eq], 'P': [P_eq]})).mark_point(
             size=200, fill='black', color='black'
         ).encode(x='Y', y='P')
-        st.altair_chart((base_macro + lras_line + eq_macro).interactive(), use_container_width=True)
+        st.altair_chart((chart_adas + chart_lras + eq_p).interactive(), use_container_width=True)
         
-        gap = Y_macro_eq - 8
-        st.metric("Output Gap (Y - Y*)", f"{gap:.2f}")
-        if gap > 0:
-            st.warning("⚠️ Inflationary Gap (Overheating)")
-        elif gap < 0:
-            st.error("⚠️ Recessionary Gap")
+        gap = Y_eq - Y_pot
+        status = txt['full_emp']
+        if gap < 0: status = txt['recession']
+        elif gap > 0: status = txt['inflation']
+        
+        st.info(f"""
+        {txt['eq_res_adas']}
+        - **output (Y*):** {Y_eq:.2f}
+        - **{txt['p_lvl']}** {P_eq:.2f}
+        - **{txt['gap']}** {gap:.2f} ({status})
+        """)

@@ -18,8 +18,8 @@ T = {
         'basket_editor': "Edit Market Basket:",
         'item': "Item",
         'qty': "Quantity",
-        'base_price': "Base Year Price ($)",
-        'curr_price': "Current Year Price ($)",
+        'base_price': "Base Year Price (Rp)",
+        'curr_price': "Current Year Price (Rp)",
         'res': "Results:",
         'cost_base': "- Cost of Basket (Base Year):",
         'cpi_base': "- CPI (Base Year):",
@@ -49,8 +49,8 @@ T = {
         'basket_editor': "Edit Keranjang Belanja:",
         'item': "Barang",
         'qty': "Kuantitas",
-        'base_price': "Harga Tahun Dasar ($)",
-        'curr_price': "Harga Tahun Berjalan ($)",
+        'base_price': "Harga Tahun Dasar (Rp)",
+        'curr_price': "Harga Tahun Berjalan (Rp)",
         'res': "Hasil:",
         'cost_base': "- Biaya Keranjang (Thn Dasar):",
         'cpi_base': "- IHK (Thn Dasar):",
@@ -85,10 +85,10 @@ with tab1:
     
     # Initial Data
     default_data = pd.DataFrame([
-        {txt['item']: "Apples", txt['qty']: 10, txt['base_price']: 1.00, txt['curr_price']: 1.50},
-        {txt['item']: "Bread", txt['qty']: 5, txt['base_price']: 2.00, txt['curr_price']: 2.20},
-        {txt['item']: "Gasoline", txt['qty']: 20, txt['base_price']: 3.00, txt['curr_price']: 3.50},
-        {txt['item']: "Rent", txt['qty']: 1, txt['base_price']: 500.00, txt['curr_price']: 550.00},
+        {txt['item']: "Beras", txt['qty']: 10, txt['base_price']: 12000.00, txt['curr_price']: 15000.00},
+        {txt['item']: "Minyak Goreng", txt['qty']: 5, txt['base_price']: 14000.00, txt['curr_price']: 18000.00},
+        {txt['item']: "Bensin (Pertalite)", txt['qty']: 20, txt['base_price']: 10000.00, txt['curr_price']: 10000.00},
+        {txt['item']: "Sewa Kost", txt['qty']: 1, txt['base_price']: 1500000.00, txt['curr_price']: 1600000.00},
     ])
     
     st.subheader(txt['basket_editor'])
@@ -105,10 +105,10 @@ with tab1:
     
     st.markdown(f"### {txt['res']}")
     col_c1, col_c2 = st.columns(2)
-    col_c1.metric(txt['cost_base'], f"${cost_base:,.2f}")
+    col_c1.metric(txt['cost_base'], f"Rp {cost_base:,.2f}")
     col_c1.metric(txt['cpi_base'], f"{cpi_base:.1f}")
     
-    col_c2.metric(txt['cost_curr'], f"${cost_curr:,.2f}")
+    col_c2.metric(txt['cost_curr'], f"Rp {cost_curr:,.2f}")
     col_c2.metric(txt['cpi_curr'], f"{cpi_curr:.1f}")
     
     st.success(f"{txt['inflation']} **{inflation_rate:.2f}%**")

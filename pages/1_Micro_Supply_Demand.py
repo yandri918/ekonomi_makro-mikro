@@ -30,11 +30,11 @@ T = {
         'error_intercept': "Supply Intercept must be lower than Demand Intercept for a valid market!",
         'eq_result': "**Market Equilibrium:**",
         'qty': "Quantity (Q)",
-        'price': "Price (P)",
+        'price': "Price (Rp)",
         'el_title': "2. Elasticity Calculator",
         'el_intro': "Calculate **Price Elasticity of Demand (PED)** using the Midpoint Method.",
-        'p1': "Initial Price (P1)",
-        'p2': "New Price (P2)",
+        'p1': "Initial Price (Rp)",
+        'p2': "New Price (Rp)",
         'q1': "Initial Quantity (Q1)",
         'q2': "New Quantity (Q2)",
         'calc_btn': "Calculate Elasticity",
@@ -63,11 +63,11 @@ T = {
         'error_intercept': "Intersep Penawaran harus lebih rendah dari Intersep Permintaan!",
         'eq_result': "**Keseimbangan Pasar:**",
         'qty': "Kuantitas (Q)",
-        'price': "Harga (P)",
+        'price': "Harga (Rp)",
         'el_title': "2. Kalkulator Elastisitas",
         'el_intro': "Hitung **Elastisitas Harga Permintaan (PED)** menggunakan Metode Titik Tengah.",
-        'p1': "Harga Awal (P1)",
-        'p2': "Harga Baru (P2)",
+        'p1': "Harga Awal (Rp)",
+        'p2': "Harga Baru (Rp)",
         'q1': "Kuantitas Awal (Q1)",
         'q2': "Kuantitas Baru (Q2)",
         'calc_btn': "Hitung Elastisitas",
@@ -158,8 +158,8 @@ with tab1:
 
         st.info(f"""
         {txt['eq_result']}
-        - **{txt['price']} ($P^*$):** {P_eq:.2f}
-        - **{txt['qty']} ($Q^*$):** {Q_eq:.2f}
+        - **{txt['price']} ($P^*$):** Rp {P_eq:,.2f}
+        - **{txt['qty']} ($Q^*$):** {Q_eq:,.2f}
         """)
 
 # --- TAB 2: ELASTICITY ---

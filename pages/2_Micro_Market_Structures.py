@@ -27,8 +27,8 @@ T = {
         'monopoly_info': "A Monopolist faces the entire market demand. Marginal Revenue (MR) falls twice as fast as Price.",
         'profit_max': "**Profit Maximization Analysis:**",
         'opt_q': "- Optimal Quantity ($Q^*$):",
-        'opt_p': "- Optimal Price ($P^*$):",
-        'atc_q': "- Average Total Cost at $Q^*$:",
+        'opt_p': "- Optimal Price (Rp):",
+        'atc_q': "- Average Total Cost at $Q^*$ (Rp):",
         'super_profit': "📈 Supernormal Profit:",
         'loss': "📉 Loss:",
         'normal_profit': "⚖️ Normal Profit (Break-even)",
@@ -51,8 +51,8 @@ T = {
         'monopoly_info': "Monopolis menghadapi seluruh permintaan pasar. Pendapatan Marginal (MR) turun dua kali lebih cepat dari Harga.",
         'profit_max': "**Analisis Maksimisasi Laba:**",
         'opt_q': "- Kuantitas Optimal ($Q^*$):",
-        'opt_p': "- Harga Optimal ($P^*$):",
-        'atc_q': "- Rata-rata Total Biaya pada $Q^*$:",
+        'opt_p': "- Harga Optimal (Rp):",
+        'atc_q': "- Rata-rata Total Biaya pada $Q^*$ (Rp):",
         'super_profit': "📈 Laba Supernormal:",
         'loss': "📉 Rugi:",
         'normal_profit': "⚖️ Laba Normal (Impas)",
@@ -176,9 +176,9 @@ with col2:
     st.write(f"{txt['atc_q']} **{atc_at_qstar:.2f}**")
     
     if profit > 0:
-        st.success(f"{txt['super_profit']} **${profit:.2f}**")
+        st.success(f"{txt['super_profit']} **Rp {profit:,.2f}**")
     elif profit < 0:
-        st.error(f"{txt['loss']} **${profit:.2f}**")
+        st.error(f"{txt['loss']} **Rp {profit:,.2f}**")
     else:
         st.info(txt['normal_profit'])
 
