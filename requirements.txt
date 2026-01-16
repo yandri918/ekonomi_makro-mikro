@@ -1,0 +1,8 @@
+streamlit==1.41.0
+pandas
+numpy
+scipy
+altair
+matplotlib
+statsmodels
+plotly
