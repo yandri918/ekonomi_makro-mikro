@@ -5,56 +5,100 @@ import altair as alt
 
 st.set_page_config(page_title="Market Structures", page_icon="🏭", layout="wide")
 
-st.title("🏭 Market Structures & Production Theory")
-st.markdown("Compare how firms maximize profit under **Perfect Competition** vs **Monopoly**.")
+if 'language' not in st.session_state:
+    st.session_state['language'] = 'ID'
+lang = st.session_state['language']
 
-structure_type = st.radio("Select Market Structure:", ["Perfect Competition", "Monopoly"], horizontal=True)
+T = {
+    'EN': {
+        'title': "🏭 Market Structures & Production Theory",
+        'subtitle': "Compare how firms maximize profit under **Perfect Competition** vs **Monopoly**.",
+        'select_struct': "Select Market Structure:",
+        'perf_comp': "Perfect Competition",
+        'monopoly': "Monopoly",
+        'cost_params': "⚙️ Cost Parameters",
+        'fc': "Fixed Cost (FC)",
+        'vc': "Variable Cost Linear (VC)",
+        'dem_params': "💰 Demand Parameters",
+        'mkt_price': "Market Price (P)",
+        'perf_comp_info': "In Perfect Competition, Price is determined by the market. The firm is a price taker ($P = MR = AR$).",
+        'dem_int': "Demand Intercept",
+        'dem_slope': "Demand Slope",
+        'monopoly_info': "A Monopolist faces the entire market demand. Marginal Revenue (MR) falls twice as fast as Price.",
+        'profit_max': "**Profit Maximization Analysis:**",
+        'opt_q': "- Optimal Quantity ($Q^*$):",
+        'opt_p': "- Optimal Price ($P^*$):",
+        'atc_q': "- Average Total Cost at $Q^*$:",
+        'super_profit': "📈 Supernormal Profit:",
+        'loss': "📉 Loss:",
+        'normal_profit': "⚖️ Normal Profit (Break-even)",
+        'where_mr_mc': "(where $MR = MC$)"
+    },
+    'ID': {
+        'title': "🏭 Struktur Pasar & Teori Produksi",
+        'subtitle': "Bandingkan bagaimana perusahaan memaksimalkan keuntungan dalam **Persaingan Sempurna** vs **Monopoli**.",
+        'select_struct': "Pilih Struktur Pasar:",
+        'perf_comp': "Persaingan Sempurna",
+        'monopoly': "Monopoli",
+        'cost_params': "⚙️ Parameter Biaya",
+        'fc': "Biaya Tetap (FC)",
+        'vc': "Biaya Variabel Linear (VC)",
+        'dem_params': "💰 Parameter Permintaan",
+        'mkt_price': "Harga Pasar (P)",
+        'perf_comp_info': "Dalam Persaingan Sempurna, Harga ditentukan oleh pasar. Perusahaan adalah penerima harga ($P = MR = AR$).",
+        'dem_int': "Intersep Permintaan",
+        'dem_slope': "Kemiringan Permintaan",
+        'monopoly_info': "Monopolis menghadapi seluruh permintaan pasar. Pendapatan Marginal (MR) turun dua kali lebih cepat dari Harga.",
+        'profit_max': "**Analisis Maksimisasi Laba:**",
+        'opt_q': "- Kuantitas Optimal ($Q^*$):",
+        'opt_p': "- Harga Optimal ($P^*$):",
+        'atc_q': "- Rata-rata Total Biaya pada $Q^*$:",
+        'super_profit': "📈 Laba Supernormal:",
+        'loss': "📉 Rugi:",
+        'normal_profit': "⚖️ Laba Normal (Impas)",
+        'where_mr_mc': "(dimana $MR = MC$)"
+    }
+}
+
+txt = T[lang]
+
+st.title(txt['title'])
+st.markdown(txt['subtitle'])
+
+structure_type = st.radio(txt['select_struct'], [txt['perf_comp'], txt['monopoly']], horizontal=True)
 
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.markdown("### ⚙️ Cost Parameters")
+    st.markdown(f"### {txt['cost_params']}")
     # Total Cost = FC + VC*Q + alpha*Q^2 + beta*Q^3 (Cubic Cost Function for U-shaped MC/AC)
-    fc = st.slider("Fixed Cost (FC)", 10, 100, 50)
-    vc_linear = st.slider("Variable Cost Linear (VC)", 1, 10, 2)
+    fc = st.slider(txt['fc'], 10, 100, 50)
+    vc_linear = st.slider(txt['vc'], 1, 10, 2)
     alpha = 0.5 # Quadratic term
     
     st.markdown("---")
-    st.markdown("### 💰 Demand Parameters")
+    st.markdown(f"### {txt['dem_params']}")
     
-    if structure_type == "Perfect Competition":
-        market_price = st.slider("Market Price (P)", 10, 50, 20)
-        st.info("In Perfect Competition, Price is determined by the market. The firm is a price taker ($P = MR = AR$).")
+    if structure_type == txt['perf_comp']:
+        market_price = st.slider(txt['mkt_price'], 10, 50, 20)
+        st.info(txt['perf_comp_info'])
         quantity_max = 50
     else: # Monopoly
-        intercept = st.slider("Demand Intercept", 30, 100, 60)
-        slope = st.slider("Demand Slope", 0.5, 2.0, 1.0)
-        st.info("A Monopolist faces the entire market demand. Marginal Revenue (MR) falls twice as fast as Price.")
+        intercept = st.slider(txt['dem_int'], 30, 100, 60)
+        slope = st.slider(txt['dem_slope'], 0.5, 2.0, 1.0)
+        st.info(txt['monopoly_info'])
         quantity_max = int(intercept / slope) if slope > 0 else 50
-
+    
 with col2:
     # Generate Data
     Q_range = np.linspace(0.1, quantity_max, 100) # Start from 0.1 to avoid division by zero for AC
-    
-    # Cost Functions
-    # TC = FC + VC*Q + 0.1*Q^2 (Simpler Quadratic TC -> Linear MC for visualization clarity)
-    # Actually let's use Quadratic TC -> Linear MC, or Cubic TC -> U-shaped MC.
-    # Let's stick to Quadratic MC (from Cubic TC) for the classic U-shape.
-    # TC = FC + aQ + bQ^2 + cQ^3
-    # Let's keep it simple: TC = FC + vc_linear * Q + 0.05 * Q^2
-    # MC = dTC/dQ = vc_linear + 0.1 * Q
-    
-    # Let's try to make U-shaped AC and rising MC.
-    # TC = FC + 2Q + 0.5Q^2
-    # MC = 2 + Q
-    # AC = FC/Q + 2 + 0.5Q
     
     tc = fc + vc_linear * Q_range + 0.1 * (Q_range**2)
     mc = vc_linear + 0.2 * Q_range
     atc = tc / Q_range
     
     # Revenue Functions
-    if structure_type == "Perfect Competition":
+    if structure_type == txt['perf_comp']:
         price = np.full_like(Q_range, market_price)
         tr = market_price * Q_range
         mr = price # MR = P
@@ -126,15 +170,16 @@ with col2:
     atc_at_qstar = (fc + vc_linear * q_star + 0.1 * (q_star**2)) / q_star if q_star > 0 else 0
     profit = (p_star - atc_at_qstar) * q_star
     
-    st.markdown(f"**Profit Maximization Analysis:**")
-    st.write(f"- Optimal Quantity ($Q^*$): **{q_star:.2f}** (where $MR = MC$)")
-    st.write(f"- Optimal Price ($P^*$): **{p_star:.2f}**")
-    st.write(f"- Average Total Cost at $Q^*$: **{atc_at_qstar:.2f}**")
+    st.markdown(txt['profit_max'])
+    st.write(f"{txt['opt_q']} **{q_star:.2f}** {txt['where_mr_mc']}")
+    st.write(f"{txt['opt_p']} **{p_star:.2f}**")
+    st.write(f"{txt['atc_q']} **{atc_at_qstar:.2f}**")
     
     if profit > 0:
-        st.success(f"📈 Supernormal Profit: **${profit:.2f}**")
+        st.success(f"{txt['super_profit']} **${profit:.2f}**")
     elif profit < 0:
-        st.error(f"📉 Loss: **${profit:.2f}**")
+        st.error(f"{txt['loss']} **${profit:.2f}**")
     else:
-        st.info("⚖️ Normal Profit (Break-even)")
+        st.info(txt['normal_profit'])
+
 

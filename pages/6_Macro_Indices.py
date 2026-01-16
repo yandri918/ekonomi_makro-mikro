@@ -1,77 +1,152 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import altair as alt
 
 st.set_page_config(page_title="Economic Indices", page_icon="🔢", layout="wide")
 
-st.title("🔢 Economic Indices: CPI & Inflation")
-st.markdown("Calculate **Consumer Price Index (CPI)** and **Inflation Rate** by constructing a representative basket of goods.")
+if 'language' not in st.session_state:
+    st.session_state['language'] = 'ID'
+lang = st.session_state['language']
 
-col1, col2 = st.columns([1, 1])
+T = {
+    'EN': {
+        'title': "🔢 Economic Indices: CPI & PPP",
+        'tab1': "🛒 CPI & Inflation Calculator",
+        'tab2': "🍔 PPP & Big Mac Index",
+        'cpi_title': "1. Consumer Price Index (CPI) Calculator",
+        'cpi_intro': "Build a **Market Basket** of goods to calculate CPI and Inflation Rate.",
+        'basket_editor': "Edit Market Basket:",
+        'item': "Item",
+        'qty': "Quantity",
+        'base_price': "Base Year Price ($)",
+        'curr_price': "Current Year Price ($)",
+        'res': "Results:",
+        'cost_base': "- Cost of Basket (Base Year):",
+        'cpi_base': "- CPI (Base Year):",
+        'cost_curr': "- Cost of Basket (Current):",
+        'cpi_curr': "- CPI (Current):",
+        'inflation': "- Inflation Rate:",
+        'ppp_title': "2. Purchasing Power Parity (PPP)",
+        'ppp_intro': "Understand PPP using the famous **Big Mac Index** concept.",
+        'compare_to': "Compare Currency to USD ($)",
+        'local_curr': "Local Currency Name",
+        'bm_price_local': "Price of Big Mac in Local Currency",
+        'bm_price_us': "Price of Big Mac in USD ($)",
+        'ex_rate': "Actual Exchange Rate (Local/USD)",
+        'ppp_calc': "PPP Calculations:",
+        'implied_rate': "- Implied PPP Exchange Rate:",
+        'valuation': "- Valuation vs USD:",
+        'over': "OVERVALUED",
+        'under': "UNDERVALUED",
+        'fair': "FAIR VALUE"
+    },
+    'ID': {
+        'title': "🔢 Indeks Ekonomi: IHK & PPP",
+        'tab1': "🛒 Kalkulator IHK & Inflasi",
+        'tab2': "🍔 PPP & Indeks Big Mac",
+        'cpi_title': "1. Kalkulator Indeks Harga Konsumen (IHK)",
+        'cpi_intro': "Buat **Keranjang Belanja** barang untuk menghitung IHK dan Tingkat Inflasi.",
+        'basket_editor': "Edit Keranjang Belanja:",
+        'item': "Barang",
+        'qty': "Kuantitas",
+        'base_price': "Harga Tahun Dasar ($)",
+        'curr_price': "Harga Tahun Berjalan ($)",
+        'res': "Hasil:",
+        'cost_base': "- Biaya Keranjang (Thn Dasar):",
+        'cpi_base': "- IHK (Thn Dasar):",
+        'cost_curr': "- Biaya Keranjang (Sekarang):",
+        'cpi_curr': "- IHK (Sekarang):",
+        'inflation': "- Tingkat Inflasi:",
+        'ppp_title': "2. Paritas Daya Beli (PPP)",
+        'ppp_intro': "Pahami PPP menggunakan konsep **Indeks Big Mac** yang terkenal.",
+        'compare_to': "Bandingkan Mata Uang thd USD ($)",
+        'local_curr': "Nama Mata Uang Lokal",
+        'bm_price_local': "Harga Big Mac (Mata Uang Lokal)",
+        'bm_price_us': "Harga Big Mac di USD ($)",
+        'ex_rate': "Nilai Tukar Aktual (Lokal/USD)",
+        'ppp_calc': "Perhitungan PPP:",
+        'implied_rate': "- Nilai Tukar PPP Implisit:",
+        'valuation': "- Valuasi thd USD:",
+        'over': "DINILAI TERLALU TINGGI (Overvalued)",
+        'under': "DINILAI TERLALU RENDAH (Undervalued)",
+        'fair': "NILAI WAJAR"
+    }
+}
 
-with col1:
-    st.subheader("🛒 Market Basket")
-    
-    # Default Basket
-    default_data = pd.DataFrame({
-        'Item': ['Food', 'Housing', 'Transport', 'Healthcare', 'Education'],
-        'Quantity': [10, 1, 5, 2, 1],
-        'Price_Base': [50, 500, 20, 100, 200],
-        'Price_Current': [60, 550, 25, 120, 210]
-    })
-    
-    edited_df = st.data_editor(default_data, num_rows="dynamic", use_container_width=True)
+txt = T[lang]
 
-with col2:
-    st.subheader("📊 Calculation Results")
+st.title(txt['title'])
+
+tab1, tab2 = st.tabs([txt['tab1'], txt['tab2']])
+
+with tab1:
+    st.markdown(f"### {txt['cpi_title']}")
+    st.markdown(txt['cpi_intro'])
     
-    if not edited_df.empty:
-        # Calculate Costs
-        item = edited_df
-        cost_base = (item['Quantity'] * item['Price_Base']).sum()
-        cost_current = (item['Quantity'] * item['Price_Current']).sum()
+    # Initial Data
+    default_data = pd.DataFrame([
+        {txt['item']: "Apples", txt['qty']: 10, txt['base_price']: 1.00, txt['curr_price']: 1.50},
+        {txt['item']: "Bread", txt['qty']: 5, txt['base_price']: 2.00, txt['curr_price']: 2.20},
+        {txt['item']: "Gasoline", txt['qty']: 20, txt['base_price']: 3.00, txt['curr_price']: 3.50},
+        {txt['item']: "Rent", txt['qty']: 1, txt['base_price']: 500.00, txt['curr_price']: 550.00},
+    ])
+    
+    st.subheader(txt['basket_editor'])
+    edited_df = st.data_editor(default_data, num_rows="dynamic")
+    
+    # Calculations
+    # Cost Base = Sum(Qty * BasePrice)
+    cost_base = (edited_df[txt['qty']] * edited_df[txt['base_price']]).sum()
+    cost_curr = (edited_df[txt['qty']] * edited_df[txt['curr_price']]).sum()
+    
+    cpi_base = 100.0 # By definition
+    cpi_curr = (cost_curr / cost_base) * 100 if cost_base > 0 else 0
+    inflation_rate = ((cpi_curr - cpi_base) / cpi_base) * 100
+    
+    st.markdown(f"### {txt['res']}")
+    col_c1, col_c2 = st.columns(2)
+    col_c1.metric(txt['cost_base'], f"${cost_base:,.2f}")
+    col_c1.metric(txt['cpi_base'], f"{cpi_base:.1f}")
+    
+    col_c2.metric(txt['cost_curr'], f"${cost_curr:,.2f}")
+    col_c2.metric(txt['cpi_curr'], f"{cpi_curr:.1f}")
+    
+    st.success(f"{txt['inflation']} **{inflation_rate:.2f}%**")
+    
+    st.latex(r"CPI = \frac{\text{Cost of Basket}_{current}}{\text{Cost of Basket}_{base}} \times 100")
+
+with tab2:
+    st.markdown(f"### {txt['ppp_title']}")
+    st.markdown(txt['ppp_intro'])
+    
+    col_p1, col_p2 = st.columns(2)
+    
+    with col_p1:
+        st.subheader(txt['compare_to'])
+        currency = st.text_input(txt['local_curr'], "IDR (Rupiah)")
+        p_local = st.number_input(txt['bm_price_local'], value=50000.0, format="%.2f")
+        p_us = st.number_input(txt['bm_price_us'], value=5.50)
+        e_actual = st.number_input(txt['ex_rate'], value=15500.0)
         
-        cpi = (cost_current / cost_base) * 100 if cost_base > 0 else 0
-        inflation = ((cpi - 100) / 100) * 100 # Assuming Base CPI is 100
+    with col_p2:
+        st.subheader(txt['ppp_calc'])
         
-        st.metric("Cost of Basket (Base Year)", f"${cost_base:,.2f}")
-        st.metric("Cost of Basket (Current Year)", f"${cost_current:,.2f}")
+        # implied rate = P_local / P_us
+        implied_rate = p_local / p_us
         
-        st.divider()
+        # Valuation = (Implied - Actual) / Actual
+        valuation_pct = ((implied_rate - e_actual) / e_actual) * 100
         
-        m1, m2 = st.columns(2)
-        m1.metric("CPI (Index)", f"{cpi:.2f}")
-        m2.metric("Inflation Rate", f"{inflation:.2f}%", delta=f"{inflation:.2f}%", delta_color="inverse")
+        st.metric(txt['implied_rate'], f"{implied_rate:,.2f} {currency}/USD")
         
-        st.info(f"""
-        **Formula:**
-        $$ \\text{{CPI}} = \\frac{{\\text{{Cost of Basket}}_{{\\text{{Current}}}}}}{{\\text{{Cost of Basket}}_{{\\text{{Base}}}}}} \\times 100 $$
+        status = txt['fair']
+        color = "off"
+        if valuation_pct > 10: 
+            status = txt['over']
+            color = "inverse" # red usually
+        elif valuation_pct < -10: 
+            status = txt['under']
+            color = "normal" # green usually
         
-        This means prices have risen by **{inflation:.1f}%** compared to the base year.
-        """)
-
-
-st.divider()
-
-st.subheader("🌍 Purchasing Power Parity (PPP) Demo")
-pp_col1, pp_col2 = st.columns(2)
-
-with pp_col1:
-    st.markdown("**Big Mac Index Concept**")
-    price_local = st.number_input("Price of Big Mac in Local Currency (IDR)", value=35000)
-    price_us = st.number_input("Price of Big Mac in USA (USD)", value=5.50)
-    
-with pp_col2:
-    implied_exchange_rate = price_local / price_us
-    actual_exchange_rate = st.number_input("Actual Exchange Rate (USD/IDR)", value=15500)
-    
-    valuation = ((implied_exchange_rate - actual_exchange_rate) / actual_exchange_rate) * 100
-    
-    st.metric("Implied PPP Exchange Rate", f"1 USD = {implied_exchange_rate:,.0f} IDR")
-    
-    if valuation > 0:
-        st.error(f"Currrency is **Overvalued** by {valuation:.1f}%")
-    else:
-        st.success(f"Currency is **Undervalued** by {abs(valuation):.1f}% (Good for exports!)")
-
+        st.metric(txt['valuation'], f"{valuation_pct:.2f}%", delta=valuation_pct, delta_color="inverse")
+        st.info(f"The {currency} is **{status}** against the USD based on the Big Mac Index.")

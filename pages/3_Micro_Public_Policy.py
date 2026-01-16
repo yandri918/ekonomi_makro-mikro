@@ -5,132 +5,245 @@ import altair as alt
 
 st.set_page_config(page_title="Public Policy", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ Public Policy & Welfare Analysis")
-st.markdown("Simulate the effects of government intervention: **Taxes, Subsidies,** and **Price Controls** on Market Welfare.")
+if 'language' not in st.session_state:
+    st.session_state['language'] = 'ID'
+lang = st.session_state['language']
+
+T = {
+    'EN': {
+        'title': "🏛️ Public Policy Simulation",
+        'intro': "Simulate the impact of government interventions on market equilibrium and welfare.",
+        'select_policy': "Select Policy Type",
+        'none': "None",
+        'tax': "Tax (Per Unit)",
+        'subsidy': "Subsidy (Per Unit)",
+        'floor': "Price Floor (Minimum Wage)",
+        'ceiling': "Price Ceiling",
+        'params': "⚙️ Market Parameters",
+        'demand_int': "Demand Intercept",
+        'demand_slope': "Demand Slope",
+        'supply_int': "Supply Intercept",
+        'supply_slope': "Supply Slope",
+        'policy_params': "⚙️ Policy Parameters",
+        'tax_amt': "Tax Amount ($)",
+        'sub_amt': "Subsidy Amount ($)",
+        'floor_price': "Price Floor ($)",
+        'ceiling_price': "Price Ceiling ($)",
+        'eq_res': "**Initial Equilibrium (No Policy):**",
+        'eq_p': "Price ($P^*$):",
+        'eq_q': "Quantity ($Q^*$):",
+        'policy_impact': "**Policy Impact Analysis:**",
+        'cons_price': "Consumer Price ($P_c$):",
+        'prod_price': "Producer Price ($P_p$):",
+        'new_q': "New Quantity ($Q_{new}$):",
+        'dwl': "Deadweight Loss",
+        'gov_rev': "Govt Revenue",
+        'gov_cost': "Govt Cost",
+        'surplus': "Surplus (Excess Supply):",
+        'shortage': "Shortage (Excess Demand):",
+        'qty_traded': "Quantity Traded:",
+        'eff_floor': "Binding Price Floor",
+        'ineff_floor': "Non-binding Price Floor (No Effect)",
+        'eff_ceiling': "Binding Price Ceiling",
+        'ineff_ceiling': "Non-binding Price Ceiling (No Effect)"
+    },
+    'ID': {
+        'title': "🏛️ Simulasi Kebijakan Publik",
+        'intro': "Simulasikan dampak intervensi pemerintah terhadap keseimbangan pasar dan kesejahteraan.",
+        'select_policy': "Pilih Jenis Kebijakan",
+        'none': "Tidak Ada",
+        'tax': "Pajak (Per Unit)",
+        'subsidy': "Subsidi (Per Unit)",
+        'floor': "Harga Dasar (Upah Minimum)",
+        'ceiling': "Harga Tertinggi (HET)",
+        'params': "⚙️ Parameter Pasar",
+        'demand_int': "Intersep Permintaan",
+        'demand_slope': "Kemiringan Permintaan",
+        'supply_int': "Intersep Penawaran",
+        'supply_slope': "Kemiringan Penawaran",
+        'policy_params': "⚙️ Parameter Kebijakan",
+        'tax_amt': "Besaran Pajak ($)",
+        'sub_amt': "Besaran Subsidi ($)",
+        'floor_price': "Harga Dasar ($)",
+        'ceiling_price': "Harga Tertinggi ($)",
+        'eq_res': "**Keseimbangan Awal (Tanpa Kebijakan):**",
+        'eq_p': "Harga ($P^*$):",
+        'eq_q': "Kuantitas ($Q^*$):",
+        'policy_impact': "**Analisis Dampak Kebijakan:**",
+        'cons_price': "Harga Konsumen ($P_c$):",
+        'prod_price': "Harga Produsen ($P_p$):",
+        'new_q': "Kuantitas Baru ($Q_{new}$):",
+        'dwl': "Deadweight Loss (DWL)",
+        'gov_rev': "Pendapatan Pemerintah",
+        'gov_cost': "Biaya Pemerintah",
+        'surplus': "Surplus (Kelebihan Penawaran):",
+        'shortage': "Kelangkaan (Kelebihan Permintaan):",
+        'qty_traded': "Kuantitas Diperdagangkan:",
+        'eff_floor': "Harga Dasar Efektif",
+        'ineff_floor': "Harga Dasar Tidak Efektif (Tidak Ada Efek)",
+        'eff_ceiling': "Harga Tertinggi Efektif",
+        'ineff_ceiling': "Harga Tertinggi Tidak Efektif (Tidak Ada Efek)"
+    }
+}
+
+txt = T[lang]
+
+st.title(txt['title'])
+st.markdown(txt['intro'])
 
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.markdown("### 🛠️ Policy Settings")
-    policy = st.selectbox("Select Policy Type", ["None", "Tax (Per Unit)", "Subsidy (Per Unit)", "Price Floor (Min Wage)", "Price Ceiling"])
+    policy = st.selectbox(txt['select_policy'], [txt['none'], txt['tax'], txt['subsidy'], txt['floor'], txt['ceiling']])
     
     st.markdown("---")
-    st.markdown("**Market Parameters**")
-    a = st.number_input("Demand Intercept (a)", value=100)
-    b = st.number_input("Demand Slope (b)", value=1.0)
-    c = st.number_input("Supply Intercept (c)", value=10)
-    d = st.number_input("Supply Slope (d)", value=1.0)
+    st.markdown(f"### {txt['params']}")
+    a = st.slider(txt['demand_int'], 50, 200, 100)
+    b = st.slider(txt['demand_slope'], 0.5, 2.0, 1.0)
+    c = st.slider(txt['supply_int'], 0, 50, 20)
+    d = st.slider(txt['supply_slope'], 0.5, 2.0, 1.0)
     
-    magnitude = 0.0
-    if policy == "Tax (Per Unit)":
-        magnitude = st.slider("Tax Amount", 0, 50, 10)
-    elif policy == "Subsidy (Per Unit)":
-        magnitude = st.slider("Subsidy Amount", 0, 50, 10)
-    elif policy == "Price Floor (Min Wage)":
-        magnitude = st.slider("Price Floor Level", 0, 100, 60)
-    elif policy == "Price Ceiling":
-        magnitude = st.slider("Price Ceiling Level", 0, 100, 40)
+    st.markdown("---")
+    magnitude = 0
+    if policy == txt['tax']:
+        st.markdown(f"### {txt['policy_params']}")
+        magnitude = st.slider(txt['tax_amt'], 0, 50, 10)
+    elif policy == txt['subsidy']:
+        st.markdown(f"### {txt['policy_params']}")
+        magnitude = st.slider(txt['sub_amt'], 0, 50, 10)
+    elif policy == txt['floor']:
+        st.markdown(f"### {txt['policy_params']}")
+        # Set default near equilibrium
+        magnitude = st.slider(txt['floor_price'], 0, 100, 50)
+    elif policy == txt['ceiling']:
+        st.markdown(f"### {txt['policy_params']}")
+        magnitude = st.slider(txt['ceiling_price'], 0, 100, 30)
 
 with col2:
     # 1. Base Equilibrium
-    if b+d == 0:
+    if b+d == 0: # Avoid division by zero if slopes are 0
         P_eq, Q_eq = 0, 0
     else:
         P_eq = (a - c) / (b + d)
         Q_eq = a - b * P_eq
-
-    # 2. Policy Impact
-    Q_new, P_cons, P_prod, DWL, Gov_Rev_Cost = 0, 0, 0, 0, 0
-    type_label = "Base"
     
-    if policy == "None":
+    st.markdown(txt['eq_res'])
+    c1, c2 = st.columns(2)
+    c1.metric(txt['eq_p'], f"{P_eq:.2f}")
+    c2.metric(txt['eq_q'], f"{Q_eq:.2f}")
+    
+    # 2. Policy Impact
+    DWL = 0
+    Gov_Rev = 0
+    Gov_Cost = 0
+    Q_new = Q_eq
+    P_cons = P_eq
+    P_prod = P_eq
+    
+    # Variables for DWL calculation in price controls
+    Pd_at_Qnew = P_eq
+    Ps_at_Qnew = P_eq
+
+    # Logic
+    if policy == txt['none']:
         Q_new = Q_eq
         P_cons = P_eq
         P_prod = P_eq
         
-    elif policy == "Tax (Per Unit)":
-        # Supply shifts up by Tax: P = (c+Tax)/d + (1/d)Q ... careful with inv supply P = (Q-c)/d
-        # Qs = c + d(P - Tax) -> P_supply_curve_effective = P_market - Tax
-        # Easier: Pd = Ps + Tax
-        # Q = a - b(Ps + Tax) = c + dPs
-        # a - bPs - bTax = c + dPs
-        # Ps(b+d) = a - bTax - c
-        P_prod = (a - c - b*magnitude) / (b + d)
+    elif policy == txt['tax']:
+        # Supply shifts up by tax: P_s = (c + tax) + d*Q_s (Inverted Supply P = (Q-c)/d + tax)
+        # easier: Q_d = a - b*P_c, Q_s = c + d*P_p, P_c - P_p = Tax
+        # a - b(P_p + Tax) = c + d*P_p
+        # a - b*Tax - c = (b+d)P_p
+        P_prod = (a - c - b * magnitude) / (b + d)
         Q_new = c + d * P_prod
         P_cons = P_prod + magnitude
-        type_label = "Tax"
         
         DWL = 0.5 * (Q_eq - Q_new) * magnitude
-        Gov_Rev_Cost = magnitude * Q_new
+        Gov_Rev = magnitude * Q_new
         
-    elif policy == "Subsidy (Per Unit)":
-        # Ps = Pd + Subsidy
-        # Q = a - bPd = c + d(Pd + Subsidy)
-        # a - bPd = c + dPd + dSub
-        # Pd(b+d) = a - c - dSub
-        P_cons = (a - c - d*magnitude) / (b + d)
+    elif policy == txt['subsidy']:
+        # P_p - P_c = Subsidy
+        # Q = a - b*P_c = c + d*P_p
+        # a - b*P_c = c + d(P_c + Subsidy)
+        # a - c - d*Subsidy = (b+d)P_c
+        P_cons = (a - c - d * magnitude) / (b + d)
         Q_new = a - b * P_cons
         P_prod = P_cons + magnitude
-        type_label = "Subsidy"
         
-        DWL = 0.5 * (Q_new - Q_eq) * magnitude 
-        Gov_Rev_Cost = -magnitude * Q_new # Cost to Gov
-        
-    elif policy == "Price Floor (Min Wage)":
-        # Price cannot go below magnitude
-        if magnitude > P_eq: # Binding
-            P_cons = magnitude
-            Q_demanded = a - b * P_cons
-            Q_supplied = c + d * P_cons
-            Q_new = min(Q_demanded, Q_supplied)
-            # DWL is area between Q_new and Q_eq under Demand and Supply
-            # Triangle approximation? Trapezoid.
-            # DWL = Integral from Q_new to Q_eq of (Pd - Ps) dQ
-            # Pd(q) = (a-q)/b, Ps(q) = (q-c)/d
-            # Intercepts at Q_new:
-            Pd_at_Qnew = (a - Q_new)/b
-            Ps_at_Qnew = (Q_new - c)/d
-            DWL = 0.5 * (Pd_at_Qnew - Ps_at_Qnew) * (Q_eq - Q_new)
-        else:
-            Q_new, P_cons, P_prod = Q_eq, P_eq, P_eq
-            DWL = 0
+        DWL = 0.5 * (Q_new - Q_eq) * magnitude
+        Gov_Cost = magnitude * Q_new
 
-    elif policy == "Price Ceiling":
-        if magnitude < P_eq: # Binding
-            P_cons = magnitude
-            Q_demanded = a - b * P_cons
-            Q_supplied = c + d * P_cons
-            Q_new = min(Q_demanded, Q_supplied)
+    elif policy == txt['floor']:
+        P_floor = magnitude
+        if P_floor > P_eq: # Binding
+            Q_d = a - b * P_floor
+            Q_s = c + d * P_floor
+            Q_traded = min(Q_d, Q_s) # Market Limiting Principle
+            Surplus = Q_s - Q_d
             
-            Pd_at_Qnew = (a - Q_new)/b
-            Ps_at_Qnew = (Q_new - c)/d
-            DWL = 0.5 * (Pd_at_Qnew - Ps_at_Qnew) * (Q_eq - Q_new)
+            Q_new = Q_traded
+            P_cons = P_floor # Consumers pay floor
+            P_prod = P_floor # Producers get floor
+            
+            # DWL is area between Supply and Demand from Q_traded to Q_eq
+            # Height at Q_traded: P_d = (a-Q)/b, P_s = (Q-c)/d
+            Pd_at_Qnew = (a - Q_new) / b
+            Ps_at_Qnew = (Q_new - c) / d 
+            
+            DWL = 0.5 * (Q_eq - Q_new) * (Pd_at_Qnew - Ps_at_Qnew)
+            
+            st.warning(f"⚠️ {txt['eff_floor']} ({txt['surplus']} {Surplus:.2f})")
         else:
-            Q_new, P_cons, P_prod = Q_eq, P_eq, P_eq
-            DWL = 0
+            st.info(txt['ineff_floor'])
+            
+    elif policy == txt['ceiling']:
+        P_ceiling = magnitude
+        if P_ceiling < P_eq: # Binding
+            Q_d = a - b * P_ceiling
+            Q_s = c + d * P_ceiling
+            Q_traded = min(Q_d, Q_s)
+            Shortage = Q_d - Q_s
+            
+            Q_new = Q_traded
+            P_cons = P_ceiling
+            P_prod = P_ceiling
+            
+            # DWL
+            Pd_at_Qnew = (a - Q_new) / b
+            Ps_at_Qnew = (Q_new - c) / d
+            DWL = 0.5 * (Q_eq - Q_new) * (Pd_at_Qnew - Ps_at_Qnew)
+            
+            st.warning(f"⚠️ {txt['eff_ceiling']} ({txt['shortage']} {Shortage:.2f})")
+        else:
+            st.info(txt['ineff_ceiling'])
 
-    # 3. Visualization
-    # Create Lines
-    prices = np.linspace(0, max(a/b, (Q_new/d + c + 10)), 100)
+    # Visualization
+    P_max = (a / b) if b > 0 else 100
+    prices = np.linspace(0, max(P_max * 1.2, P_cons*1.2, P_prod*1.2, P_eq*1.2, magnitude*1.2), 100)
     df = pd.DataFrame({'Price': prices})
     df['Demand'] = a - b * df['Price']
     df['Supply'] = c + d * df['Price']
-    if policy == "Tax (Per Unit)":
-        df['Supply + Tax'] = c + d * (df['Price'] - magnitude) # Q = c + d(P - t) -> P_sup = P -t
-    elif policy == "Subsidy (Per Unit)":
+    
+    # New Supply curve for Tax (Visual only)
+    if policy == txt['tax']:
+         # S_tax: P = (Q-c)/d + tax -> Q = c + d(P - tax)
+         df['Supply + Tax'] = c + d * (df['Price'] - magnitude)
+    elif policy == txt['subsidy']:
         df['Supply + Subsidy'] = c + d * (df['Price'] + magnitude)
-        
-    df = df[(df['Demand'] >= 0) & (df['Supply'] >= 0)]
+         
     df_melted = df.melt('Price', var_name='Type', value_name='Quantity')
+    # Filter negative Q
+    df_melted = df_melted[df_melted['Quantity'] >= 0]
     
     base_chart = alt.Chart(df_melted).mark_line().encode(
-        x='Quantity', y='Price', color='Type'
+        x=alt.X('Quantity', title='Quantity'),
+        y='Price',
+        color='Type'
     )
     
     # Shade DWL if applicable
-    # Create polygon for DWL
-    if DWL > 0 and policy in ["Tax (Per Unit)", "Subsidy (Per Unit)"]:
-        # Polygon points: (Q_new, P_cons), (Q_new, P_prod), (Q_eq, P_eq)
+    if DWL > 0 and policy in [txt['tax'], txt['subsidy']]:
         dwl_df = pd.DataFrame([
             {'Quantity': Q_new, 'Price': P_cons},
             {'Quantity': Q_new, 'Price': P_prod},
@@ -140,10 +253,7 @@ with col2:
             x='Quantity', y='Price'
         )
         base_chart += dwl_area
-    elif DWL > 0: # Price controls
-         # (Q_new, Pd_at_Qnew), (Q_new, Ps_at_Qnew), (Q_eq, P_eq)
-         Pd_at_Qnew = (a - Q_new)/b
-         Ps_at_Qnew = (Q_new - c)/d
+    elif DWL > 0 and policy in [txt['floor'], txt['ceiling']]:
          dwl_df = pd.DataFrame([
             {'Quantity': Q_new, 'Price': Pd_at_Qnew},
             {'Quantity': Q_new, 'Price': Ps_at_Qnew},
