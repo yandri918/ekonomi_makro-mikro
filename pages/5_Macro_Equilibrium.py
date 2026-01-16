@@ -14,6 +14,7 @@ T = {
         'title': "⚖️ Macroeconomic Equilibrium: IS-LM & AD-AS",
         'tab1': "📉 IS-LM Model",
         'tab2': "📈 AD-AS Model",
+        'tab3': "📊 Policy & Growth",
         'islm_title': "1. IS-LM Model (Short Run)",
         'islm_intro': "Interaction between the **Goods Market (IS)** and **Money Market (LM)**.",
         'fiscal_policy': "🏛️ Fiscal Policy (IS Curve)",
@@ -40,12 +41,24 @@ T = {
         'gap': "Output Gap (Y* - Y_potential):",
         'recession': "Recessionary Gap",
         'inflation': "Inflationary Gap",
-        'full_emp': "Full Employment"
+        'full_emp': "Full Employment",
+        'tab3': "📊 Policy & Growth",
+        'growth_title': "3. Economic Growth & Policy Multipliers",
+        'growth_intro': "Calculate the impact of Fiscal and Monetary Policy on **GDP Growth**.",
+        'current_state': "Current Economic State",
+        'current_gdp': "Current Nominal GDP (Rp Trillion)",
+        'fiscal_stimulus': "🏛️ Fiscal Stimulus / Contraction",
+        'delta_G': "Change in Govt Spending ($\Delta G$)",
+        'delta_T': "Change in Taxes ($\Delta T$)",
+        'monetary_stimulus': "🏦 Monetary Stimulus",
+        'delta_Ms': "Change in Money Supply ($\Delta Ms$)",
+        'growth_res': "Growth Projection Results"
     },
     'ID': {
         'title': "⚖️ Keseimbangan Makroekonomi: IS-LM & AD-AS",
         'tab1': "📉 Model IS-LM",
         'tab2': "📈 Model AD-AS",
+        'tab3': "📊 Pertumbuhan & Kebijakan",
         'islm_title': "1. Model IS-LM (Jangka Pendek)",
         'islm_intro': "Interaksi antara **Pasar Barang (IS)** dan **Pasar Uang (LM)**.",
         'fiscal_policy': "🏛️ Kebijakan Fiskal (Kurva IS)",
@@ -72,7 +85,17 @@ T = {
         'gap': "Celah Output (Y* - Y_potensial):",
         'recession': "Celah Resesi",
         'inflation': "Celah Inflasi",
-        'full_emp': "Kesempatan Kerja Penuh"
+        'full_emp': "Kesempatan Kerja Penuh",
+        'growth_title': "3. Pertumbuhan Ekonomi & Multiplier Kebijakan",
+        'growth_intro': "Hitung dampak Kebijakan Fiskal dan Moneter terhadap **Pertumbuhan PDB**.",
+        'current_state': "Kondisi Ekonomi Saat Ini",
+        'current_gdp': "PDB Nominal Saat Ini (Rp Triliun)",
+        'fiscal_stimulus': "🏛️ Stimulus / Kontraksi Fiskal",
+        'delta_G': "Perubahan Belanja Pemerintah ($\Delta G$)",
+        'delta_T': "Perubahan Pajak ($\Delta T$)",
+        'monetary_stimulus': "🏦 Stimulus Moneter",
+        'delta_Ms': "Perubahan Jml Uang Beredar ($\Delta Ms$)",
+        'growth_res': "Hasil Proyeksi Pertumbuhan"
     }
 }
 
@@ -80,7 +103,7 @@ txt = T[lang]
 
 st.title(txt['title'])
 
-tab1, tab2 = st.tabs([txt['tab1'], txt['tab2']])
+tab1, tab2, tab3 = st.tabs([txt['tab1'], txt['tab2'], txt['tab3']])
 
 # --- TAB 1: IS-LM ---
 with tab1:
@@ -219,3 +242,96 @@ with tab2:
         - **{txt['p_lvl']}** {P_eq:.2f}
         - **{txt['gap']}** {gap:.2f} ({status})
         """)
+
+# --- TAB 3: POLICY & GROWTH ---
+with tab3:
+    st.markdown(f"### {txt['growth_title']}")
+    st.markdown(txt['growth_intro'])
+    
+    col_g1, col_g2 = st.columns([1, 2])
+    
+    with col_g1:
+        st.subheader(txt['current_state'])
+        current_gdp = st.number_input(txt['current_gdp'], value=20000.0, step=100.0)
+        
+        st.markdown("---")
+        st.subheader(txt['fiscal_stimulus'])
+        delta_G = st.number_input(txt['delta_G'], value=0.0, step=10.0, help="Change in Govt Spending")
+        delta_T = st.number_input(txt['delta_T'], value=0.0, step=10.0, help="Change in Taxes (increase = contractionary)")
+        
+        st.markdown("---")
+        st.subheader(txt['monetary_stimulus'])
+        delta_Ms = st.number_input(txt['delta_Ms'], value=0.0, step=10.0)
+        
+    with col_g2:
+        # Multipliers
+        # MPC is from Tab 1 (shared state or re-declared? Better to re-declare or use session state if we want persistence, 
+        # but for simplicity let's use a local MPC slider or assume a standard one)
+        # To avoid confusion, let's add specific parameters for this calc
+        
+        st.subheader("⚙️ Analysis Parameters")
+        mpc_grow = st.slider("MPC (Marginal Propensity to Consume)", 0.1, 0.9, 0.75, key="mpc_grow")
+        tax_rate = st.slider("Tax Rate (t)", 0.0, 0.5, 0.2, key="tax_grow")
+        
+        # Calculations
+        # 1. Fiscal Multiplier (Government Spending)
+        # k_g = 1 / (1 - MPC*(1-t))
+        k_g = 1 / (1 - mpc_grow * (1 - tax_rate))
+        
+        # 2. Tax Multiplier
+        # k_t = -MPC / (1 - MPC*(1-t))
+        k_t = -mpc_grow / (1 - mpc_grow * (1 - tax_rate))
+        
+        # 3. Monetary Impact (Simplified)
+        # Assuming Delta Ms affects Interest Rate -> Investment -> GDP
+        # We'll use a simplified 'Money Multiplier' or 'Transmission Coefficient'
+        # Let's assume Delta Y_monetary = Delta Ms * Velocity (V is constant-ish) or similar proxy
+        # For this edu simulation, let's say 1T Ms adds 0.8 * k_g to GDP (liquidity effect)
+        monetary_coefficient = 0.8 * k_g
+        
+        # Total Changes
+        impact_G = delta_G * k_g
+        impact_T = delta_T * k_t # Note: delta_T positive means Tax HIKE -> Negative Impact
+        impact_Ms = delta_Ms * monetary_coefficient
+        
+        total_change = impact_G + impact_T + impact_Ms
+        new_gdp = current_gdp + total_change
+        growth_rate = (total_change / current_gdp) * 100
+        
+        # Display Results
+        st.markdown(f"### {txt['growth_res']}")
+        
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Fiscal Multiplier (Gov)", f"{k_g:.2f}x")
+        m2.metric("Tax Multiplier", f"{k_t:.2f}x")
+        m3.metric("Projected Growth", f"{growth_rate:.2f}%", delta=f"{total_change:,.1f}", delta_color="normal")
+        
+        st.info(f"""
+        **Projected GDP:** Rp {new_gdp:,.2f} Triliun
+        - Impact from Gov Spending ($\Delta G$): Rp {impact_G:,.2f}
+        - Impact from Taxes ($\Delta T$): Rp {impact_T:,.2f}
+        - Impact from Monetary ($\Delta Ms$): Rp {impact_Ms:,.2f}
+        """)
+        
+        # Visualization: Waterfall or Bar Chart
+        data = pd.DataFrame({
+            'Component': ['Initial GDP', 'Gov Spending Effect', 'Tax Effect', 'Monetary Effect'],
+            'Value': [current_gdp, impact_G, impact_T, impact_Ms]
+        })
+        
+        # Waterfall logic simulation in bar chart
+        # Cumulative sum for waterfall? Or just a breakdown.
+        # Let's do a simple component bar chart
+        
+        chart_growth = alt.Chart(data).mark_bar().encode(
+            x=alt.X('Component', sort=None),
+            y=alt.Y('Value', title='Rp Trilliun'),
+            color=alt.condition(
+                alt.datum.Value >= 0,
+                alt.value("green"),
+                alt.value("red")
+            ),
+            tooltip=['Component', alt.Tooltip('Value', format=',.2f')]
+        ).properties(title="GDP Impact Analysis")
+        
+        st.altair_chart(chart_growth, use_container_width=True)
