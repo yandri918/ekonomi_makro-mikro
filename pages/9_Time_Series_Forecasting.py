@@ -122,16 +122,16 @@ with col1:
     with b2:
         if st.button(txt['clear_data']):
             st.session_state['ts_data'] = pd.DataFrame({
-                'Date': pd.to_datetime([]),
-                'Value': pd.to_numeric([], dtype='float64')
+                'Date': pd.Series(dtype='datetime64[ns]'),
+                'Value': pd.Series(dtype='float64')
             })
             st.rerun()
 
     # Initialize session state if first run
     if 'ts_data' not in st.session_state:
         st.session_state['ts_data'] = pd.DataFrame({
-                'Date': pd.to_datetime([]),
-                'Value': pd.to_numeric([], dtype='float64')
+                'Date': pd.Series(dtype='datetime64[ns]'),
+                'Value': pd.Series(dtype='float64')
             })
 
     st.markdown("---")
