@@ -302,14 +302,18 @@ with tab1:
             key='cf_editor'
         )
         
-        st.session_state['cash_flows'] = edited_cf
+        # Update session state with edited values
+        if edited_cf is not None:
+            st.session_state['cash_flows'] = edited_cf.copy()
         
-        calc_btn = st.button(txt['calc_npv'], type='primary')
+        calc_btn = st.button(txt['calc_npv'], type='primary', key='calc_npv_btn')
     
     with col2:
-        if calc_btn:
-            # Prepare cash flows
-            cash_flows_array = np.concatenate([[initial_investment], edited_cf['Cash Flow (Rp Billion)'].values])
+        # Always show results if calculation has been done
+        if calc_btn or 'npv_results' in st.session_state:
+            if calc_btn:
+                # Prepare cash flows from session state
+                cash_flows_array = np.concatenate([[initial_investment], st.session_state['cash_flows']['Cash Flow (Rp Billion)'].values])
             discount_rate = discount_rate_pct / 100
             
             # Calculate NPV
