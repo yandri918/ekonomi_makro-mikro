@@ -39,7 +39,8 @@ T = {
         'actual': "Actual Data",
         'forecast': "Forecast",
         'train_rng': "Training Range (Months)",
-        'insufficient': "Not enough data for this seasonal period. Try reducing the period."
+        'insufficient': "Not enough data for this seasonal period. Try reducing the period.",
+        'edit_data': "📝 View & Edit Data"
     },
     'ID': {
         'title': "📈 Lab Peramalan Ekonomi",
@@ -69,7 +70,8 @@ T = {
         'actual': "Data Aktual",
         'forecast': "Ramalan",
         'train_rng': "Rentang Training (Bulan)",
-        'insufficient': "Data tidak cukup untuk periode musiman ini. Coba kurangi periode."
+        'insufficient': "Data tidak cukup untuk periode musiman ini. Coba kurangi periode.",
+        'edit_data': "📝 Lihat & Edit Data"
     }
 }
 
@@ -113,6 +115,25 @@ with col1:
         st.success("Data Generated!")
 
     st.markdown("---")
+    
+    # EDITABLE DATA SECTION
+    if 'ts_data' in st.session_state:
+        with st.expander(txt['edit_data']):
+            edited_df = st.data_editor(
+                st.session_state['ts_data'], 
+                num_rows="dynamic", 
+                column_config={
+                    "Date": st.column_config.DatetimeColumn("Date", format="D MMM YYYY"),
+                    "Value": st.column_config.NumberColumn("Value", format="%.2f")
+                },
+                key='ts_editor'
+            )
+            # Update df to be used in model
+            df_model = edited_df
+    else:
+        df_model = None
+
+    st.markdown("---")
     st.markdown(f"### {txt['params']}")
     
     horizon = st.slider(txt['horizon'], 1, 24, 12)
@@ -122,8 +143,8 @@ with col1:
     seasonal_type = st.selectbox(txt['seasonal'], ["add", "mul", None], format_func=lambda x: txt['additive'] if x == 'add' else (txt['multiplicative'] if x == 'mul' else txt['none']))
 
 with col2:
-    if 'ts_data' in st.session_state:
-        df = st.session_state['ts_data']
+    if df_model is not None and not df_model.empty:
+        df = df_model
         
         # --- 2. Model Fitting & Forecasting ---
         try:
