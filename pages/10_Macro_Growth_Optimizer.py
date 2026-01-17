@@ -39,7 +39,10 @@ T = {
         'waterfall_title': "Path to Target GDP",
         'explanation': "**AI Logic:** The optimizer minimized structural changes while prioritizing your preference for **{}**.",
         'param_sens': "Investment Sensitivity to Interest Rate (Linear)",
-        'mpc_label': "Marginal Propensity to Consume (MPC)"
+        'mpc_label': "Marginal Propensity to Consume (MPC)",
+        'pop': "Population (Millions)",
+        'gdp_capita': "GDP Per Capita",
+        'unit_capita': "Million Rp/Year"
     },
     'ID': {
         'title': "🎯 AI Pengoptimal Kebijakan Makro",
@@ -69,7 +72,10 @@ T = {
         'waterfall_title': "Jalur Menuju Target PDB",
         'explanation': "**Logika AI:** Optimizer meminimalkan perubahan struktural drastis sambil memprioritaskan preferensi Anda untuk **{}**.",
         'param_sens': "Sensitivitas Investasi thd Suku Bunga",
-        'mpc_label': "Marginal Propensity to Consume (MPC)"
+        'mpc_label': "Marginal Propensity to Consume (MPC)",
+        'pop': "Populasi (Juta Jiwa)",
+        'gdp_capita': "PDB Per Kapita",
+        'unit_capita': "Juta Rp/Tahun"
     }
 }
 
@@ -96,8 +102,15 @@ with col1:
     G0 = st.number_input(txt['G'], value=3000.0)
     NX0 = st.number_input(txt['NX'], value=500.0)
     
+    # Population Input
+    pop = st.number_input(txt['pop'], value=280.0, step=1.0)
+    
     current_GDP = C0 + I0 + G0 + NX0
-    st.metric("Current GDP / PDB Saat Ini", f"Rp {current_GDP:,.0f} T")
+    current_capita = (current_GDP / pop) if pop > 0 else 0
+    
+    m1, m2 = st.columns(2)
+    m1.metric("Current GDP", f"Rp {current_GDP:,.0f} T")
+    m2.metric(txt['gdp_capita'], f"Rp {current_capita:,.1f} Jt")
     
     st.markdown("---")
     st.subheader(txt['target_sec'])
@@ -116,11 +129,13 @@ with col2:
     st.markdown("---")
     
     target_GDP = current_GDP * (1 + target_pct/100)
+    target_capita = (target_GDP / pop) if pop > 0 else 0
     required_gap = target_GDP - current_GDP
     
     st.info(f"""
     **Target GDP:** Rp {target_GDP:,.0f} T 
     \n**Required Gap:** Rp {required_gap:,.0f} T
+    \n**Target {txt['gdp_capita']}:** Rp {target_capita:,.1f} {txt['unit_capita']}
     """)
 
     if st.button(txt['optimize_btn'], type="primary"):
@@ -200,6 +215,7 @@ with col2:
             
             total_increase = stimulus_G + stimulus_I
             final_GDP = current_GDP + total_increase
+            final_capita = (final_GDP / pop) if pop > 0 else 0
             
             # --- RESULTS VISUALIZATION ---
             st.success("✅ Optimization Successful! Solution Found.")
@@ -210,6 +226,7 @@ with col2:
                 st.markdown(f"#### {txt['rec_policy']}")
                 st.metric(txt['new_g'], f"Rp {opt_G:,.0f} T", delta=f"{delta_G:+,.0f} T ({((opt_G-G0)/G0)*100:+.1f}%)")
                 st.metric(txt['new_r'], f"{opt_r:.2f}%", delta=f"{-delta_r:+.2f}%", delta_color="inverse")
+                st.metric(f"New {txt['gdp_capita']}", f"Rp {final_capita:,.1f} M", delta=f"{final_capita-current_capita:+.1f} M")
             
             with res_col2:
                 st.markdown(f"#### {txt['analysis']}")
