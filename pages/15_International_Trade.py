@@ -138,6 +138,39 @@ with tab1:
         - Contoh: Indonesia butuh **2 jam** untuk 1 kg Beras, **4 jam** untuk 1 meter Tekstil.
         - Sistem akan hitung **Biaya Peluang** (Opportunity Cost) dan tentukan siapa yang harus spesialisasi di produk mana.
         """)
+        
+        with st.expander("📖 Tutorial: Cara Menghitung Jam Kerja per Unit"):
+            st.markdown("""
+            ### **Rumus Sederhana:**
+            ```
+            Jam per Unit = Total Jam Kerja ÷ Total Unit yang Diproduksi
+            ```
+            
+            ### **Contoh Praktis:**
+            
+            #### **Kasus 1: Petani Beras di Indonesia 🌾**
+            - Seorang petani bekerja **8 jam** dalam sehari
+            - Dalam 8 jam, dia bisa panen **4 kg beras**
+            - **Jam per Unit** = 8 jam ÷ 4 kg = **2 jam/kg**
+            
+            #### **Kasus 2: Pabrik Tekstil di Indonesia 👕**
+            - Satu mesin jahit dioperasikan **8 jam** per hari
+            - Dalam 8 jam, menghasilkan **2 meter kain**
+            - **Jam per Unit** = 8 jam ÷ 2 meter = **4 jam/meter**
+            
+            #### **Kasus 3: Petani Beras di Vietnam 🌾**
+            - Petani Vietnam bekerja **9 jam** sehari
+            - Dalam 9 jam, panen **3 kg beras**
+            - **Jam per Unit** = 9 jam ÷ 3 kg = **3 jam/kg**
+            
+            ---
+            
+            ### **Interpretasi:**
+            - Indonesia: **2 jam/kg** beras → **Lebih efisien** (lebih cepat)
+            - Vietnam: **3 jam/kg** beras → **Kurang efisien** (lebih lama)
+            
+            **Kesimpulan**: Indonesia punya **keunggulan absolut** di produksi beras karena lebih cepat (2 jam vs 3 jam).
+            """)
     else:
         st.success("""
         💡 **How it works:**
@@ -145,6 +178,39 @@ with tab1:
         - Example: Indonesia needs **2 hours** for 1 kg Rice, **4 hours** for 1 meter Textiles.
         - The system calculates **Opportunity Cost** and determines who should specialize in which product.
         """)
+        
+        with st.expander("📖 Tutorial: How to Calculate Labor Hours per Unit"):
+            st.markdown("""
+            ### **Simple Formula:**
+            ```
+            Hours per Unit = Total Labor Hours ÷ Total Units Produced
+            ```
+            
+            ### **Practical Examples:**
+            
+            #### **Case 1: Rice Farmer in Indonesia 🌾**
+            - A farmer works **8 hours** per day
+            - In 8 hours, harvests **4 kg of rice**
+            - **Hours per Unit** = 8 hours ÷ 4 kg = **2 hours/kg**
+            
+            #### **Case 2: Textile Factory in Indonesia 👕**
+            - One sewing machine operates **8 hours** per day
+            - In 8 hours, produces **2 meters of fabric**
+            - **Hours per Unit** = 8 hours ÷ 2 meters = **4 hours/meter**
+            
+            #### **Case 3: Rice Farmer in Vietnam 🌾**
+            - Vietnamese farmer works **9 hours** per day
+            - In 9 hours, harvests **3 kg of rice**
+            - **Hours per Unit** = 9 hours ÷ 3 kg = **3 hours/kg**
+            
+            ---
+            
+            ### **Interpretation:**
+            - Indonesia: **2 hours/kg** rice → **More efficient** (faster)
+            - Vietnam: **3 hours/kg** rice → **Less efficient** (slower)
+            
+            **Conclusion**: Indonesia has **absolute advantage** in rice production because it's faster (2 hours vs 3 hours).
+            """)
     
     col1, col2 = st.columns([1, 2])
     
