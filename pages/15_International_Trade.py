@@ -130,6 +130,22 @@ tab1, tab2 = st.tabs([txt['tab1'], txt['tab2']])
 with tab1:
     st.info(txt['ca_theory'])
     
+    # Add explanatory box
+    if lang == 'ID':
+        st.success("""
+        💡 **Cara Kerja:**
+        - Masukkan **jam kerja** yang dibutuhkan setiap negara untuk produksi 1 unit barang.
+        - Contoh: Indonesia butuh **2 jam** untuk 1 kg Beras, **4 jam** untuk 1 meter Tekstil.
+        - Sistem akan hitung **Biaya Peluang** (Opportunity Cost) dan tentukan siapa yang harus spesialisasi di produk mana.
+        """)
+    else:
+        st.success("""
+        💡 **How it works:**
+        - Enter the **labor hours** required by each country to produce 1 unit of goods.
+        - Example: Indonesia needs **2 hours** for 1 kg Rice, **4 hours** for 1 meter Textiles.
+        - The system calculates **Opportunity Cost** and determines who should specialize in which product.
+        """)
+    
     col1, col2 = st.columns([1, 2])
     
     with col1:
@@ -143,13 +159,13 @@ with tab1:
         st.markdown("---")
         
         # Labor Matrix
-        st.markdown(f"**{country_a}**")
-        a_p1 = st.number_input(f"{product_1} (hours)", value=2.0, step=0.5, key='a_p1')
-        a_p2 = st.number_input(f"{product_2} (hours)", value=4.0, step=0.5, key='a_p2')
+        st.markdown(f"**{country_a}** (Jam Kerja per Unit)" if lang == 'ID' else f"**{country_a}** (Labor Hours per Unit)")
+        a_p1 = st.number_input(f"🌾 {product_1} (jam/unit)" if lang == 'ID' else f"🌾 {product_1} (hours/unit)", value=2.0, step=0.5, key='a_p1', help="Berapa jam kerja untuk produksi 1 unit?" if lang == 'ID' else "How many labor hours to produce 1 unit?")
+        a_p2 = st.number_input(f"👕 {product_2} (jam/unit)" if lang == 'ID' else f"👕 {product_2} (hours/unit)", value=4.0, step=0.5, key='a_p2', help="Berapa jam kerja untuk produksi 1 unit?" if lang == 'ID' else "How many labor hours to produce 1 unit?")
         
-        st.markdown(f"**{country_b}**")
-        b_p1 = st.number_input(f"{product_1} (hours)", value=3.0, step=0.5, key='b_p1')
-        b_p2 = st.number_input(f"{product_2} (hours)", value=3.0, step=0.5, key='b_p2')
+        st.markdown(f"**{country_b}** (Jam Kerja per Unit)" if lang == 'ID' else f"**{country_b}** (Labor Hours per Unit)")
+        b_p1 = st.number_input(f"🌾 {product_1} (jam/unit)" if lang == 'ID' else f"🌾 {product_1} (hours/unit)", value=3.0, step=0.5, key='b_p1', help="Berapa jam kerja untuk produksi 1 unit?" if lang == 'ID' else "How many labor hours to produce 1 unit?")
+        b_p2 = st.number_input(f"👕 {product_2} (jam/unit)" if lang == 'ID' else f"👕 {product_2} (hours/unit)", value=3.0, step=0.5, key='b_p2', help="Berapa jam kerja untuk produksi 1 unit?" if lang == 'ID' else "How many labor hours to produce 1 unit?")
         
         calc_btn = st.button(txt['calc_btn'], type='primary')
     
