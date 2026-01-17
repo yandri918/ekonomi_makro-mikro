@@ -39,6 +39,7 @@ T = {
         'waterfall_title': "Path to Target GDP",
         'explanation': "**AI Logic:** The optimizer minimized structural changes while prioritizing your preference for **{}**.",
         'param_sens': "Investment Sensitivity to Interest Rate (Linear)",
+        'param_nx': "Net Export Sensitivity to Interest Rate (Exchange Rate Channel)",
         'mpc_label': "Marginal Propensity to Consume (MPC)",
         'pop': "Population (Millions)",
         'gdp_capita': "GDP Per Capita",
@@ -72,6 +73,7 @@ T = {
         'waterfall_title': "Jalur Menuju Target PDB",
         'explanation': "**Logika AI:** Optimizer meminimalkan perubahan struktural drastis sambil memprioritaskan preferensi Anda untuk **{}**.",
         'param_sens': "Sensitivitas Investasi thd Suku Bunga",
+        'param_nx': "Sensitivitas Ekspor Neto thd Suku Bunga (Jalur Nilai Tukar)",
         'mpc_label': "Marginal Propensity to Consume (MPC)",
         'pop': "Populasi (Juta Jiwa)",
         'gdp_capita': "PDB Per Kapita",
@@ -90,6 +92,8 @@ with st.sidebar:
     MPC = st.slider(txt['mpc_label'], 0.1, 0.9, 0.75)
     # Sensitivity: How much Investment (Trillion Rp) increases for 1% drop in r
     alpha_I = st.number_input(txt['param_sens'], value=200.0, step=10.0, help="Delta I / Delta r")
+    # Sensitivity: How much Net Exports (Trillion Rp) increases for 1% drop in r (via depreciation)
+    alpha_NX = st.number_input(txt['param_nx'], value=100.0, step=10.0, help="Delta NX / Delta r (Depreciation Effect)")
 
 # --- MAIN INPUTS ---
 col1, col2 = st.columns([1, 1.5])
@@ -144,11 +148,9 @@ with col2:
         # Variables to optimize: x = [G_new, r_new]
         # We need to hit Target GDP.
         # GDP = C + I + G + NX
-        # Assume C depends on Y (Multiplier effect captured somewhat or simplified)
-        # Let's use simple multiplier logic:
-        # Delta Y = (Delta G + Delta I) * Multiplier
         # Multiplier = 1 / (1 - MPC)
         # Delta I = alpha_I * (r0 - r_new)
+        # Delta NX = alpha_NX * (r0 - r_new) -> Open Economy Logic
         # Delta G = G_new - G0
         
         # Objective Function: Minimize specific "Pain" or "Deviation" based on preference
@@ -178,11 +180,15 @@ with col2:
         def constraint_eq(x):
             G_new, r_new = x
             delta_G = G_new - G0
-            delta_r = r0 - r_new # Interest rate cut increases I
+            delta_r = r0 - r_new # Interest rate cut increases I and NX
+            
             delta_I = alpha_I * delta_r
+            delta_NX = alpha_NX * delta_r # Appreciation hurts, Depreciation helps
             
             multiplier = 1 / (1 - MPC)
-            total_stimulus = delta_G + delta_I
+            
+            # Total Autonmous Change (Delta G + Delta I + Delta NX)
+            total_stimulus = delta_G + delta_I + delta_NX
             
             projected_growth_val = total_stimulus * multiplier
             projected_GDP = current_GDP + projected_growth_val
@@ -190,8 +196,6 @@ with col2:
             return projected_GDP - target_GDP
 
         # Bounds
-        # G_new must be betwen G0 and G0 * (1 + max_g_pct/100)
-        # r_new must be between min_r_val and 20%
         b_G = (G0, G0 * (1 + max_g_pct/100))
         b_r = (min_r_val, 20.0)
         
@@ -207,13 +211,17 @@ with col2:
             # Calculate Implications
             delta_G = opt_G - G0
             delta_r = r0 - opt_r
+            
             delta_I = alpha_I * delta_r
+            delta_NX = alpha_NX * delta_r
+            
             multiplier = 1 / (1 - MPC)
             
             stimulus_G = delta_G * multiplier
             stimulus_I = delta_I * multiplier
+            stimulus_NX = delta_NX * multiplier
             
-            total_increase = stimulus_G + stimulus_I
+            total_increase = stimulus_G + stimulus_I + stimulus_NX
             final_GDP = current_GDP + total_increase
             final_capita = (final_GDP / pop) if pop > 0 else 0
             
@@ -241,7 +249,9 @@ with col2:
                     insight_text = f"""
                     To close the **Rp {required_gap:,.0f} T** gap and reach **{target_pct}% Growth**, the AI suggests:
                     1. **Fiscal Policy**: The Govt should **increase spending** by **Rp {delta_G:,.0f} T**.
-                    2. **Monetary Policy**: The Central Bank should **cut interest rates** by **{delta_r:.2f}%** to boost Investment by **Rp {delta_I:,.0f} T**.
+                    2. **Monetary Policy**: The Central Bank should **cut interest rates** by **{delta_r:.2f}%**.
+                       - This boosts **Investment** by **Rp {delta_I:,.0f} T**.
+                       - This also improves **Net Exports (Trade Balance)** by **Rp {delta_NX:,.0f} T** (via Currency Depreciation).
                     
                     **Result:** This combined stimulus adds **Rp {total_increase:,.0f} T** to the economy, raising the average income by **Rp {final_capita - current_capita:,.1f} Million/person**.
                     """
@@ -249,7 +259,9 @@ with col2:
                     insight_text = f"""
                     Untuk menutup gap **Rp {required_gap:,.0f} T** dan mencapai Pertumbuhan **{target_pct}%**, AI menyarankan:
                     1. **Kebijakan Fiskal**: Pemerintah **{fiscal_action} belanja** sebesar **Rp {delta_G:,.0f} T**.
-                    2. **Kebijakan Moneter**: Bank Sentral **{monetary_action} suku bunga** sebesar **{abs(delta_r):.2f}%** untuk memacu Investasi sebesar **Rp {delta_I:,.0f} T**.
+                    2. **Kebijakan Moneter**: Bank Sentral **{monetary_action} suku bunga** sebesar **{abs(delta_r):.2f}%**.
+                       - Hal ini memacu **Investasi** sebesar **Rp {delta_I:,.0f} T**.
+                       - Hal ini juga memperbaiki **Ekspor Neto (Neraca Dagang)** sebesar **Rp {delta_NX:,.0f} T** (via Depresiasi Rupiah).
                     
                     **Dampak:** Stimulus gabungan ini menyuntikkan **Rp {total_increase:,.0f} T** ke ekonomi, menaikkan pendapatan rata-rata warga sebesar **Rp {final_capita - current_capita:,.1f} Juta/orang**.
                     """
@@ -258,16 +270,17 @@ with col2:
                 
                 # Waterfall Chart Data
                 df_waterfall = pd.DataFrame({
-                    'Category': ['Current GDP', 'Effect of G', 'Effect of r (via I)', 'Target GDP'],
-                    'Value': [current_GDP, stimulus_G, stimulus_I, final_GDP],
-                    'Delta': [current_GDP, stimulus_G, stimulus_I, 0] # For waterfall logic
+                    'Category': ['Current GDP', 'Effect of G', 'Effect of r (via I)', 'Effect of r (via NX)', 'Target GDP'],
+                    'Value': [current_GDP, stimulus_G, stimulus_I, stimulus_NX, final_GDP],
+                    'Delta': [current_GDP, stimulus_G, stimulus_I, stimulus_NX, 0] # For waterfall logic
                 })
                 
                 # Simple Bar Chart for composition
                 chart_data = pd.DataFrame([
                     {'Label': 'Baseline', 'Value': current_GDP, 'Type': 'Base'},
                     {'Label': 'Stimulus (G)', 'Value': stimulus_G, 'Type': 'Fiscal'},
-                    {'Label': 'Stimulus (r)', 'Value': stimulus_I, 'Type': 'Monetary'},
+                    {'Label': 'Stimulus (I)', 'Value': stimulus_I, 'Type': 'Monetary'},
+                    {'Label': 'Stimulus (NX)', 'Value': stimulus_NX, 'Type': 'Trade'},
                 ])
                 
                 base_chart = alt.Chart(chart_data).mark_bar().encode(
