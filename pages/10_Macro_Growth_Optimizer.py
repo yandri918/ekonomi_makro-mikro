@@ -43,7 +43,21 @@ T = {
         'mpc_label': "Marginal Propensity to Consume (MPC)",
         'pop': "Population (Millions)",
         'gdp_capita': "GDP Per Capita",
-        'unit_capita': "Million Rp/Year"
+        'res_optimize': "📈 Recommendation: Growth Optimization",
+        'rec_text': "To achieve **{g:.2f}% Growth**, the AI suggests:",
+        'rec_g': "Increase Govt Spending (G) by:",
+        'rec_r': "Change Interest Rate (r) by:",
+        'impact_nx': "Impact on Net Exports (NX):",
+        'why_nx': "Why? Lower interest rates cause currency depreciation, boosting exports.",
+        'optimal_gdp': "Predicted New GDP:",
+        'stimulus_breakdown': "Stimulus Breakdown",
+        'story_title': "📚 Story & Use Cases: Macro Growth Optimizer",
+        'story_meaning': "**What is this?**\nThis module simulates how a Central Bank and Ministry of Finance coordinate to steer the economy.",
+        'story_insight': "**Key Insight:**\nAchieving high growth isn't just about spending more money. It's about finding the *optimal mix* of Fiscal (G) and Monetary (r) policy to maximize growth without causing Hyperinflation or Currency Crashes.",
+        'story_users': "**Who needs this?**",
+        'use_govt': "🏛️ **Government (Ministry of Finance):** To determine how much budget deficit is needed to reach the 5% Growth Target.",
+        'use_corp': "🏢 **Corporations:** To forecast interest rate trends. If the model predicts a rate cut, firms should prepare to issue bonds or borrow for expansion.",
+        'use_analyst': "📈 **Market Analysts:** To assess if the government's growth targets are realistic or mere political rhetoric."
     },
     'ID': {
         'title': "🎯 AI Pengoptimal Kebijakan Makro",
@@ -77,7 +91,15 @@ T = {
         'mpc_label': "Marginal Propensity to Consume (MPC)",
         'pop': "Populasi (Juta Jiwa)",
         'gdp_capita': "PDB Per Kapita",
-        'unit_capita': "Juta Rp/Tahun"
+        'optimal_gdp': "Prediksi PDB Baru:",
+        'stimulus_breakdown': "Rincian Stimulus",
+        'story_title': "📚 Cerita & Kasus Penggunaan: Macro Growth Optimizer",
+        'story_meaning': "**Apa artinya ini?**\nModul ini mensimulasikan bagaimana Bank Sentral dan Kementerian Keuangan berkoordinasi untuk mengemudikan ekonomi.",
+        'story_insight': "**Wawasan Utama:**\nMencapai pertumbuhan tinggi bukan hanya soal belanja uang. Ini tentang menemukan *campuran optimal* Kebijakan Fiskal (G) dan Moneter (r) agar ekonomi tumbuh tanpa memicu Hiperinflasi atau krisis Mata Uang.",
+        'story_users': "**Siapa yang butuh ini?**",
+        'use_govt': "🏛️ **Pemerintah (Kemenkeu/BI):** Untuk menghitung berapa defisit anggaran yang diperlukan demi mencapai target pertumbuhan 5% atau 8%.",
+        'use_corp': "🏢 **Perusahaan Besar:** Untuk memprediksi tren suku bunga. Jika model memprediksi pemangkasan bunga, perusahaan sebaiknya bersiap menerbitkan obligasi atau meminjam untuk ekspansi.",
+        'use_analyst': "📈 **Analis Pasar:** Untuk menilai apakah target pertumbuhan pemerintah realistis atau sekadar janji politik."
     }
 }
 
@@ -297,3 +319,14 @@ with col2:
         else:
             st.error("❌ Optimization Failed. The target might be too high for the given constraints.")
             st.write(sol.message)
+
+# --- STORY & USE CASES ---
+if 'story_title' in txt:
+    st.divider()
+    with st.expander(txt['story_title']):
+        st.markdown(txt['story_meaning'])
+        st.info(txt['story_insight'])
+        st.markdown(txt['story_users'])
+        st.write(txt['use_govt'])
+        st.write(txt['use_corp'])
+        st.write(txt['use_analyst'])

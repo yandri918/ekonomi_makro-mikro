@@ -30,7 +30,14 @@ T = {
         'managerial': "📋 Managerial Insights",
         'insight_1': "To produce **{q} units** most efficiently, you should hire **{l:.1f} workers** and use **{k:.1f} machine hours**.",
         'insight_labor': "💡 **Labor Strategy**: Since Labor is relatively cheaper/more productive, the model suggests a **Labor-Intensive** approach.",
-        'insight_capital': "💡 **Capital Strategy**: Since Capital is relatively cheaper/more productive, the model suggests a **Capital-Intensive** approach."
+        'insight_capital': "💡 **Capital Strategy**: Since Capital is relatively cheaper/more productive, the model suggests a **Capital-Intensive** approach.",
+        'story_title': "📚 Story & Use Cases: Production Optimization",
+        'story_meaning': "**What is this?**\nIt calculates the cheapest way to produce a target quantity (Cost Minimization) using the optimal mix of Labor and Machines.",
+        'story_insight': "**Key Insight:**\nIf wages rise (Labor gets expensive), smart managers shift to machines (Capital). Use this to simulate 'Automation' decisions.",
+        'story_users': "**Who needs this?**",
+        'use_govt': "🏛️ **Industry Ministry:** To understand if rising Minimum Wages will trigger mass layoffs (Automation).",
+        'use_corp': "🏢 **Factory Managers:** To balance the budget. 'Should we hire 100 more workers or buy 1 CNC Machine?'",
+        'use_analyst': "📈 **Efficiency Consultants:** To optimize clients' OPEX structures."
     },
     'ID': {
         'title': "🏭 Optimasi Produksi Manajerial",
@@ -52,7 +59,14 @@ T = {
         'managerial': "📋 Insight Manajerial",
         'insight_1': "Untuk memproduksi **{q} unit** termurah, Anda harus mempekerjakan **{l:.1f} orang** dan menggunakan **{k:.1f} jam mesin**.",
         'insight_labor': "💡 **Strategi Padat Karya**: Karena Tenaga Kerja relatif lebih murah/produktif, model menyarankan pendekatan **Padat Karya**.",
-        'insight_capital': "💡 **Strategi Padat Modal**: Karena Modal relatif lebih murah/produktif, model menyarankan pendekatan **Padat Modal**."
+        'insight_capital': "💡 **Strategi Padat Modal**: Karena Modal relatif lebih murah/produktif, model menyarankan pendekatan **Padat Modal**.",
+        'story_title': "📚 Cerita & Kasus Penggunaan: Optimasi Produksi",
+        'story_meaning': "**Apa artinya ini?**\nMenghitung cara termurah untuk memproduksi target output (Minimisasi Biaya) dengan kombinasi optimal Buruh dan Mesin.",
+        'story_insight': "**Wawasan Utama:**\nJika upah naik (Buruh mahal), manajer cerdas beralih ke mesin (Modal). Gunakan ini untuk mensimulasikan keputusan 'Otomasi'.",
+        'story_users': "**Siapa yang butuh ini?**",
+        'use_govt': "🏛️ **Kemenperin:** Untuk memahami apakah kenaikan UMR akan memicu PHK massal (Otomasi Pabrik).",
+        'use_corp': "🏢 **Manajer Pabrik:** Untuk menyeimbangkan anggaran. 'Lebih baik rekrut 100 buruh atau beli 1 Mesin CNC?'",
+        'use_analyst': "📈 **Konsultan Efisiensi:** Untuk mengoptimalkan struktur biaya operasional (OPEX) klien."
     }
 }
 
@@ -140,3 +154,14 @@ with col2:
         st.success(txt['insight_labor'])
     else:
         st.warning(txt['insight_capital'])
+
+# --- STORY & USE CASES ---
+if 'story_title' in txt:
+    st.divider()
+    with st.expander(txt['story_title']):
+        st.markdown(txt['story_meaning'])
+        st.info(txt['story_insight'])
+        st.markdown(txt['story_users'])
+        st.write(txt['use_govt'])
+        st.write(txt['use_corp'])
+        st.write(txt['use_analyst'])

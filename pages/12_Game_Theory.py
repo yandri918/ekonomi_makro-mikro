@@ -29,7 +29,14 @@ T = {
         'betrayal': "😈 **You Betrayed!** You cut price while AI stayed high. You stole the market!",
         'sucker': "😓 **You got Played!** AI cut price while you stayed high. You lost market share.",
         'score_you': "You",
-        'score_ai': "AI"
+        'score_ai': "AI",
+        'story_title': "📚 Story & Use Cases: Game Theory",
+        'story_meaning': "**What is this?**\nGame Theory analyzes strategic interactions where your outcome depends on your rival's move.",
+        'story_insight': "**Key Insight:**\nRational behavior (Self-Interest) often leads to a worse outcome for everyone (Nash Equilibrium). Cooperation requires trust or binding contracts.",
+        'story_users': "**Who needs this?**",
+        'use_govt': "🏛️ **Diplomats:** For Arms Races or Climate Treaties. 'If I cut emissions but you don't, I lose economic growth.'",
+        'use_corp': "🏢 **CEOs:** For Price Wars. 'If I cut price, I gain share temporarily, but if rival follows, we both lose margin.'",
+        'use_analyst': "📈 **Auction Bidders:** To determine the optimal bid strategy without overpaying (Winner's Curse)."
     },
     'ID': {
         'title': "♟️ Teori Permainan: Strategi Oligopoli",
@@ -49,7 +56,14 @@ T = {
         'betrayal': "😈 **Anda Berkhianat!** Anda banting harga saat AI bertahan. Anda merebut pasar!",
         'sucker': "😓 **Anda Tertipu!** AI banting harga saat Anda bertahan. Anda kehilangan pasar.",
         'score_you': "Anda",
-        'score_ai': "AI"
+        'score_ai': "AI",
+        'story_title': "📚 Cerita & Kasus Penggunaan: Teori Permainan",
+        'story_meaning': "**Apa artinya ini?**\nTeori Permainan menganalisis interaksi strategis di mana hasil Anda bergantung pada langkah lawan.",
+        'story_insight': "**Wawasan Utama:**\nPerilaku rasional (mementingkan diri sendiri) seringkali berujung pada hasil yang lebih buruk bagi semua pihak (Nash Equilibrium). Kerjasama butuh kepercayaan atau kontrak mengikat.",
+        'story_users': "**Siapa yang butuh ini?**",
+        'use_govt': "🏛️ **Diplomat:** Untuk Perjanjian Iklim. 'Kalau saya kurangi emisi tapi negara lain tidak, ekonomi saya melambat sendirian.'",
+        'use_corp': "🏢 **CEO:** Untuk Perang Harga. 'Kalau saya banting harga, saya dapat pasar sebentar, tapi kalau lawan ikut, margin kami berdua hancur.'",
+        'use_analyst': "📈 **Peserta Lelang:** Untuk menentukan strategi penawaran (bidding) optimal tanpa membayar kemahalan."
     }
 }
 
@@ -152,3 +166,14 @@ with col2:
     - **Bottom Right (50, 50)**: Punishment for Mutual Defection (Nash Equilibrium).
     - **Off-Diagonals**: Temptation vs Sucker's Payoff.
     """)
+
+# --- STORY & USE CASES ---
+if 'story_title' in txt:
+    st.divider()
+    with st.expander(txt['story_title']):
+        st.markdown(txt['story_meaning'])
+        st.info(txt['story_insight'])
+        st.markdown(txt['story_users'])
+        st.write(txt['use_govt'])
+        st.write(txt['use_corp'])
+        st.write(txt['use_analyst'])

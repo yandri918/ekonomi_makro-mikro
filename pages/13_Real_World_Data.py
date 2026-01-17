@@ -38,7 +38,14 @@ T = {
         'error': "Error fetching data. World Bank API might be busy.",
         'chart_title': "Time Series Comparison (2010 - 2024)",
         'latest_title': "Latest Available Year Comparison",
-        'explanation': "💡 **Insight:**"
+        'explanation': "💡 **Insight:**",
+        'story_title': "📚 Story & Use Cases: Real-World Data",
+        'story_meaning': "**What is this?**\nA live dashboard connecting to the World Bank API to track key economic health indicators.",
+        'story_insight': "**Key Insight:**\nData tells the truth. Seeing Indonesia's growth vs Vietnam or Inflation vs USA gives instant context to local economic news.",
+        'story_users': "**Who needs this?**",
+        'use_govt': "🏛️ **President/Ministers:** For quick benchmarking. 'Are we growing faster than our neighbors?'",
+        'use_corp': "🏢 **Multinationals:** To monitor Country Risk. High inflation or low growth might signal unstable markets.",
+        'use_analyst': "📈 **Macro Strategists:** To detect long-term trends (e.g., 'Is China slowing down permanently?')."
     },
     'ID': {
         'title': "🌍 Dashboard Ekonomi Data Riil",
@@ -68,7 +75,14 @@ T = {
         'error': "Gagal mengambil data. API Bank Dunia mungkin sibuk.",
         'chart_title': "Perbandingan Runtut Waktu (2010 - 2024)",
         'latest_title': "Perbandingan Tahun Terakhir Tersedia",
-        'explanation': "💡 **Wawasan:**"
+        'explanation': "💡 **Wawasan:**",
+        'story_title': "📚 Cerita & Kasus Penggunaan: Data Riil",
+        'story_meaning': "**Apa artinya ini?**\nDashboard live yang terhubung ke API Bank Dunia untuk melacak indikator kesehatan ekonomi.",
+        'story_insight': "**Wawasan Utama:**\nData bicara jujur. Melihat pertumbuhan RI vs Vietnam atau Inflasi vs AS memberikan konteks instan pada berita ekonomi lokal.",
+        'story_users': "**Siapa yang butuh ini?**",
+        'use_govt': "🏛️ **Presiden/Menteri:** Untuk perbandingan cepat (Benchmarking). 'Apakah kita tumbuh lebih cepat dari tetangga?'",
+        'use_corp': "🏢 **Multinasional:** Untuk memantau Risiko Negara. Inflasi tinggi atau pertumbuhan rendah sinyal pasar tidak stabil.",
+        'use_analyst': "📈 **Ahli Strategi Makro:** Untuk mendeteksi tren jangka panjang (misal: 'Apakah Tiongkok melambat permanen?')."
     }
 }
 
@@ -190,3 +204,14 @@ with col2:
         st.warning("Please select at least one country.")
     else:
         st.info("👈 Click **Fetch Live Data** to start.")
+
+# --- STORY & USE CASES ---
+if 'story_title' in txt:
+    st.divider()
+    with st.expander(txt['story_title']):
+        st.markdown(txt['story_meaning'])
+        st.info(txt['story_insight'])
+        st.markdown(txt['story_users'])
+        st.write(txt['use_govt'])
+        st.write(txt['use_corp'])
+        st.write(txt['use_analyst'])

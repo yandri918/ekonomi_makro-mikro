@@ -44,7 +44,15 @@ T = {
         'gap_deficit': "Deficit (Need Side Hustle)",
         'purchasing_power': "🍔 Purchasing Power (Big Mac Equivalent)",
         'rice_equiv': "🍚 Rice Equivalent (kg)",
+        'rice_equiv': "🍚 Rice Equivalent (kg)",
         'egg_equiv': "🥚 Egg Equivalent (kg)",
+        'story_title': "📚 Story & Use Cases: Wage Calculator",
+        'story_meaning': "**What is this?**\nThis tool calculates the official Minimum Wage increase using Government Regulation (PP 51/2023) and compares it with Real Living Needs (KHL).",
+        'story_insight': "**Key Insight:**\nOfficial wage increases (Formula) often lag behind real costs (KHL). This creates a 'Purchasing Power Gap' that workers must fill with side hustles or debt.",
+        'story_users': "**Who needs this?**",
+        'use_govt': "🏛️ **Government (Manpower Agency):** To simulate how changes in Alpha and Inflation data will affect next year's Minimum Wage.",
+        'use_corp': "🏢 **HR Departments:** To budget for next year's payroll increase and ensure compliance with regulations.",
+        'use_analyst': "📢 **Labor Unions:** To demonstrate if the official formula (Alpha) is insufficient to cover basic life necessities (KHL)."
     },
     'ID': {
         'title': "👷 Kalkulator UMR & Upah Layak",
@@ -81,6 +89,13 @@ T = {
         'purchasing_power': "🍔 Daya Beli (Indeks Makan)",
         'rice_equiv': "🍚 Setara Beras (kg)",
         'egg_equiv': "🥚 Setara Telur (kg)",
+        'story_title': "📚 Cerita & Kasus Penggunaan: Kalkulator Upah",
+        'story_meaning': "**Apa artinya ini?**\nAlat ini menghitung kenaikan UMR resmi menggunakan PP 51/2023 dan membandingkannya dengan Kebutuhan Hidup Layak (KHL) riil.",
+        'story_insight': "**Wawasan Utama:**\nKenaikan upah resmi (Rumus) seringkali tertinggal dibandingkan kenaikan biaya hidup nyata (KHL). Ini menciptakan 'Celah Daya Beli' yang harus ditutup pekerja dengan lembur atau hutang.",
+        'story_users': "**Siapa yang butuh ini?**",
+        'use_govt': "🏛️ **Pemerintah (Disnaker):** Untuk mensimulasikan dampak inflasi dan pertumbuhan ekonomi terhadap UMP tahun depan.",
+        'use_corp': "🏢 **HRD Perusahaan:** Untuk menyusun anggaran kenaikan gaji tahun depan (Payroll Budgeting) agar patuh regulasi.",
+        'use_analyst': "📢 **Serikat Buruh:** Untuk membuktikan jika Alpha dalam rumus pemerintah terlalu rendah untuk menutup biaya hidup (KHL)."
     }
 }
 
@@ -169,3 +184,14 @@ with tab2:
             color=alt.Color('Category', scale=alt.Scale(domain=['UMR Baru (New Wage)', 'KHL (Needs)'], range=['green', 'red']))
         )
         st.altair_chart(chart, use_container_width=True)
+
+# --- STORY & USE CASES ---
+if 'story_title' in txt:
+    st.divider()
+    with st.expander(txt['story_title']):
+        st.markdown(txt['story_meaning'])
+        st.info(txt['story_insight'])
+        st.markdown(txt['story_users'])
+        st.write(txt['use_govt'])
+        st.write(txt['use_corp'])
+        st.write(txt['use_analyst'])

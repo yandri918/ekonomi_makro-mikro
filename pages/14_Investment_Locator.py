@@ -31,7 +31,14 @@ T = {
         'insight': "💡 **AI Insight:** Region **{winner}** wins because it offers the best balance for your specific priorities.",
         'insight_labor': "Since you prioritize **Low Wages**, this region's low UMR drove the score up.",
         'insight_infra': "Since you prioritize **Infrastructure**, this region's developed logistics drove the score up.",
-        'viz_title': "Weighted Score Breakdown"
+        'viz_title': "Weighted Score Breakdown",
+        'story_title': "📚 Story & Use Cases: Investment Locator",
+        'story_meaning': "**What is this?**\nA Decision Support System (MCDA) that ranks locations based on your specific business priorities.",
+        'story_insight': "**Key Insight:**\nThere is no 'Best Place' for everyone. A Garment factory needs cheap labor (Central Java), while a Tech Firm needs infrastructure (Jakarta). Weights matter!",
+        'story_users': "**Who needs this?**",
+        'use_govt': "🏛️ **Investment Board (BKPM):** To simulate how improving infrastructure could boost their region's attractiveness rating.",
+        'use_corp': "🏢 **Expansion Managers:** To scientifically choose the next factory location using data, not just gut feeling.",
+        'use_analyst': "📈 **Regional Economists:** To benchmark competitiveness between provinces."
     },
     'ID': {
         'title': "📍 Pencari Lokasi Investasi (MCDA)",
@@ -54,7 +61,14 @@ T = {
         'insight': "💡 **Insight AI:** Wilayah **{winner}** menang karena menawarkan keseimbangan terbaik untuk prioritas spesifik Anda.",
         'insight_labor': "Karena Anda memprioritaskan **Upah Murah**, UMR rendah di wilayah ini mendongkrak skor.",
         'insight_infra': "Karena Anda memprioritaskan **Infrastruktur**, logistik maju di wilayah ini mendongkrak skor.",
-        'viz_title': "Rincian Skor Terbobot"
+        'viz_title': "Rincian Skor Terbobot",
+        'story_title': "📚 Cerita & Kasus Penggunaan: Pencari Lokasi",
+        'story_meaning': "**Apa artinya ini?**\nSistem Pendukung Keputusan (MCDA) yang meranking lokasi berdasarkan prioritas bisnis spesifik Anda.",
+        'story_insight': "**Wawasan Utama:**\nTidak ada 'Tempat Terbaik' untuk semua. Pabrik Tekstil butuh upah murah (Jateng), sementara Startup butuh infrastruktur (Jakarta). Bobot itu penting!",
+        'story_users': "**Siapa yang butuh ini?**",
+        'use_govt': "🏛️ **BKPM/Pemda:** Untuk mensimulasikan bagaimana perbaikan jalan/tol bisa mendongkrak skor investasi daerah mereka.",
+        'use_corp': "🏢 **Manajer Ekspansi:** Untuk memilih lokasi pabrik baru secara ilmiah menggunakan data, bukan tebakan.",
+        'use_analyst': "📈 **Ekonom Regional:** Untuk membandingkan daya saing antar provinsi."
     }
 }
 
@@ -172,3 +186,14 @@ with col2:
         ).properties(title=txt['viz_title'], height=400)
         
         st.altair_chart(chart, use_container_width=True)
+
+# --- STORY & USE CASES ---
+if 'story_title' in txt:
+    st.divider()
+    with st.expander(txt['story_title']):
+        st.markdown(txt['story_meaning'])
+        st.info(txt['story_insight'])
+        st.markdown(txt['story_users'])
+        st.write(txt['use_govt'])
+        st.write(txt['use_corp'])
+        st.write(txt['use_analyst'])

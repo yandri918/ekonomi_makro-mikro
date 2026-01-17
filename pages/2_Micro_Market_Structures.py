@@ -68,12 +68,19 @@ T = {
         'normal_profit': "⚖️ Laba Normal (Impas)",
         'where_mr_mc': "(dimana $MR = MC$)",
         'kink_price': "Harga Kaku ($P_0$)",
-        'kink_qty': "Kuantitas Kaku ($Q_0$)"
+        'kink_qty': "Kuantitas Kaku ($Q_0$)",
+        'story_title': "📚 Cerita & Kasus Penggunaan: Struktur Pasar",
+        'story_meaning': "**Apa artinya ini?**\nModul ini memodelkan bagaimana level kompetisi mempengaruhi harga dan suplai barang.",
+        'story_insight': "**Wawasan Utama:**\n- **Konsumen** suka Persaingan Sempurna (Harga Murah, Barang Banyak).\n- **Pengusaha** suka Monopoli (Profit Supernormal).\n- **Realita** biasanya di tengah-tengah (Oligopoli/Persaingan Monopolistik).",
+        'story_users': "**Siapa yang butuh ini?**",
+        'use_govt': "🏛️ **KPPU (Komisi Pengawas Persaingan Usaha):** Untuk mendeteksi apakah suatu industri mengarah ke Kartel/Monopoli yang merugikan rakyat.",
+        'use_corp': "🏢 **Konsultan Strategi:** Untuk menentukan kekuatan harga (Pricing Power). Jika Anda di 'Persaingan Monopolistik' (misal: Kafe), Anda harus bikin produk unik biar bisa naikkan harga.",
+        'use_analyst': "📈 **Analis Saham:** Untuk menilai 'Moat' perusahaan. Perusahaan Monopoli/Oligopoli cenderung punya margin tebal dan arus kas stabil."
     }
 }
-
+ 
 txt = T[lang]
-
+ 
 st.title(txt['title'])
 st.markdown(txt['subtitle'])
 
@@ -256,3 +263,14 @@ with col2:
         st.error(f"**{txt['loss']} Rp {profit:,.2f}**")
     else:
         st.info(f"**{txt['normal_profit']}**")
+
+# --- STORY & USE CASES ---
+if 'story_title' in txt:
+    st.divider()
+    with st.expander(txt['story_title']):
+        st.markdown(txt['story_meaning'])
+        st.info(txt['story_insight'])
+        st.markdown(txt['story_users'])
+        st.write(txt['use_govt'])
+        st.write(txt['use_corp'])
+        st.write(txt['use_analyst'])
