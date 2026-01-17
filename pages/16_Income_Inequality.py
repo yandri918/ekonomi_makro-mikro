@@ -134,11 +134,43 @@ if input_method == txt['manual']:
         st.subheader(txt['manual_label'])
         st.caption(txt['manual_help'])
         
+        # File Upload Option
+        uploaded_file = st.file_uploader(
+            "📁 Upload CSV/Excel (Optional)" if lang == 'EN' else "📁 Upload CSV/Excel (Opsional)",
+            type=['csv', 'xlsx', 'xls'],
+            help="Upload file with 'Income' column" if lang == 'EN' else "Upload file dengan kolom 'Income'"
+        )
+        
         # Default data
         if 'income_data' not in st.session_state:
             st.session_state['income_data'] = pd.DataFrame({
                 'Income (Rp Million)': [5, 10, 15, 20, 25, 30, 40, 50, 75, 100]
             })
+        
+        # Load uploaded file
+        if uploaded_file is not None:
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    df_upload = pd.read_csv(uploaded_file)
+                else:
+                    df_upload = pd.read_excel(uploaded_file)
+                
+                # Try to find income column (case-insensitive)
+                income_col = None
+                for col in df_upload.columns:
+                    if 'income' in col.lower() or 'pendapatan' in col.lower():
+                        income_col = col
+                        break
+                
+                if income_col:
+                    st.session_state['income_data'] = pd.DataFrame({
+                        'Income (Rp Million)': df_upload[income_col].dropna()
+                    })
+                    st.success(f"✅ Loaded {len(st.session_state['income_data'])} records from '{uploaded_file.name}'")
+                else:
+                    st.error("❌ No 'Income' column found. Please ensure your file has an 'Income' or 'Pendapatan' column.")
+            except Exception as e:
+                st.error(f"❌ Error loading file: {str(e)}")
         
         # Editable dataframe
         edited_df = st.data_editor(
