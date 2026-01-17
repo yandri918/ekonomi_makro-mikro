@@ -28,8 +28,8 @@ T = {
         'formula_desc': "**New Wage = Old Wage + (Old Wage x (Inflation + (Growth x Alpha)))**",
         'insight_official': """
         **What does this mean?**
-        - Because Inflation is **{inf}%**, wages must go up to keep up with prices.
-        - The Economy grew by **{gro}%**, and workers get a share of **{alp}** (Alpha).
+        - Because Inflation is **{inf:.2f}%**, wages must go up to keep up with prices.
+        - The Economy grew by **{gro:.2f}%**, and workers get a share of **{alp}** (Alpha).
         - Total Increase: **{pct:.2f}%**.
         """,
         'khl_title': "Estimate Real Living Needs",
@@ -64,8 +64,8 @@ T = {
         'formula_desc': "**UMR Baru = UMR Lama + (UMR Lama x (Inflasi + (Pertumbuhan x Alpha)))**",
         'insight_official': """
         **Penjelasan Mudah:**
-        - Karena harga barang naik (**Inflasi {inf}%**), upah harus naik agar daya beli tetap.
-        - Ekonomi daerah tumbuh **{gro}%**, dan aturan menetapkan buruh "menikmati" **{alp}** (nilai Alpha) dari pertumbuhan itu.
+        - Karena harga barang naik (**Inflasi {inf:.2f}%**), upah harus naik agar daya beli tetap.
+        - Ekonomi daerah tumbuh **{gro:.2f}%**, dan aturan menetapkan buruh "menikmati" **{alp}** (nilai Alpha) dari pertumbuhan itu.
         - **Kesimpulan:** Upah naik total sebesar **{pct:.2f}%**.
         """,
         'khl_title': "Estimasi Kebutuhan Riil",
