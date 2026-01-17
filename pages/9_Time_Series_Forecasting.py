@@ -40,7 +40,8 @@ T = {
         'forecast': "Forecast",
         'train_rng': "Training Range (Months)",
         'insufficient': "Not enough data for this seasonal period. Try reducing the period.",
-        'edit_data': "📝 View & Edit Data"
+        'edit_data': "📝 Input & Edit Data",
+        'clear_data': "🗑️ Clear Data"
     },
     'ID': {
         'title': "📈 Lab Peramalan Ekonomi",
@@ -69,9 +70,10 @@ T = {
         'type': "Tipe",
         'actual': "Data Aktual",
         'forecast': "Ramalan",
-        'train_rng': "Rentang Training (Bulan)",
+        'train_rng': "Rentang Gen. Data (Bulan)",
         'insufficient': "Data tidak cukup untuk periode musiman ini. Coba kurangi periode.",
-        'edit_data': "📝 Lihat & Edit Data"
+        'edit_data': "📝 Input & Edit Data",
+        'clear_data': "🗑️ Hapus Data"
     }
 }
 
@@ -91,47 +93,66 @@ with col1:
     
     # Generate Synthetic Data
     # Used caching/session state to prevent regeneration on every interaction
-    if 'ts_data' not in st.session_state or st.button(txt['gen_data']):
-        np.random.seed(np.random.randint(0, 1000))
-        dates = pd.date_range(start='2020-01-01', periods=n_points, freq='M')
-        
-        if indicator == txt['cpi']:
-            # Trend + Random + Seasonality
-            trend = np.linspace(100, 120, n_points)
-            season = 2 * np.sin(np.linspace(0, 3.14 * 4, n_points)) 
-            noise = np.random.normal(0, 0.5, n_points)
-            values = trend + season + noise
-        elif indicator == txt['sales']:
-             # Multiplicative Seasonality
-             trend = np.linspace(1000, 2000, n_points)
-             season = 1 + 0.2 * np.sin(np.linspace(0, 3.14 * 8, n_points))
-             noise = np.random.normal(0, 50, n_points)
-             values = trend * season + noise
-        else: # GDP
-             trend = np.linspace(5000, 6000, n_points) + np.random.normal(0, 50, n_points).cumsum()
-             values = trend
-             
-        st.session_state['ts_data'] = pd.DataFrame({'Date': dates, 'Value': values})
-        st.success("Data Generated!")
+    # Data Controls
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button(txt['gen_data']):
+            np.random.seed(np.random.randint(0, 1000))
+            dates = pd.date_range(start='2020-01-01', periods=n_points, freq='M')
+            
+            if indicator == txt['cpi']:
+                # Trend + Random + Seasonality
+                trend = np.linspace(100, 120, n_points)
+                season = 2 * np.sin(np.linspace(0, 3.14 * 4, n_points)) 
+                noise = np.random.normal(0, 0.5, n_points)
+                values = trend + season + noise
+            elif indicator == txt['sales']:
+                 # Multiplicative Seasonality
+                 trend = np.linspace(1000, 2000, n_points)
+                 season = 1 + 0.2 * np.sin(np.linspace(0, 3.14 * 8, n_points))
+                 noise = np.random.normal(0, 50, n_points)
+                 values = trend * season + noise
+            else: # GDP
+                 trend = np.linspace(5000, 6000, n_points) + np.random.normal(0, 50, n_points).cumsum()
+                 values = trend
+                 
+            st.session_state['ts_data'] = pd.DataFrame({'Date': dates, 'Value': values})
+            st.rerun()
+
+    with b2:
+        if st.button(txt['clear_data']):
+            st.session_state['ts_data'] = pd.DataFrame({
+                'Date': pd.to_datetime([]),
+                'Value': pd.to_numeric([], dtype='float64')
+            })
+            st.rerun()
+
+    # Initialize session state if first run
+    if 'ts_data' not in st.session_state:
+        st.session_state['ts_data'] = pd.DataFrame({
+                'Date': pd.to_datetime([]),
+                'Value': pd.to_numeric([], dtype='float64')
+            })
 
     st.markdown("---")
     
     # EDITABLE DATA SECTION
+    st.markdown(f"### {txt['edit_data']}")
+    
+    # Check if data exists
     if 'ts_data' in st.session_state:
-        with st.expander(txt['edit_data']):
-            edited_df = st.data_editor(
-                st.session_state['ts_data'], 
-                num_rows="dynamic", 
-                column_config={
-                    "Date": st.column_config.DatetimeColumn("Date", format="D MMM YYYY"),
-                    "Value": st.column_config.NumberColumn("Value", format="%.2f")
-                },
-                key='ts_editor'
-            )
-            # Update df to be used in model
-            df_model = edited_df
-    else:
-        df_model = None
+        edited_df = st.data_editor(
+            st.session_state['ts_data'], 
+            num_rows="dynamic", 
+            column_config={
+                "Date": st.column_config.DatetimeColumn("Date", format="D MMM YYYY", required=True),
+                "Value": st.column_config.NumberColumn("Value", format="%.2f", required=True)
+            },
+            key='ts_editor',
+            use_container_width=True
+        )
+        # Update df to be used in model
+        df_model = edited_df
 
     st.markdown("---")
     st.markdown(f"### {txt['params']}")
