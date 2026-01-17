@@ -100,7 +100,8 @@ T = {
         'story_users': "**Siapa yang butuh ini?**",
         'use_govt': "🏛️ **Pemerintah (Kemenkeu/BI):** Untuk menghitung berapa defisit anggaran yang diperlukan demi mencapai target pertumbuhan 5% atau 8%.",
         'use_corp': "🏢 **Perusahaan Besar:** Untuk memprediksi tren suku bunga. Jika model memprediksi pemangkasan bunga, perusahaan sebaiknya bersiap menerbitkan obligasi atau meminjam untuk ekspansi.",
-        'use_analyst': "📈 **Analis Pasar:** Untuk menilai apakah target pertumbuhan pemerintah realistis atau sekadar janji politik."
+        'use_analyst': "📈 **Analis Pasar:** Untuk menilai apakah target pertumbuhan pemerintah realistis atau sekadar janji politik.",
+        'unit_capita': "Juta Rp/Tahun"
     }
 }
 
