@@ -8,3 +8,4 @@ statsmodels
 plotly
 requests
 numpy-financial
+nashpy
