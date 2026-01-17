@@ -95,7 +95,8 @@ df = pd.DataFrame(data)
 
 with col2:
     st.subheader(txt['candidates'])
-    st.dataframe(df, use_container_width=True)
+    # Make data editable
+    df = st.data_editor(df, use_container_width=True, num_rows="dynamic", key='editor_1')
 
     if total_weight == 100:
         st.divider()
