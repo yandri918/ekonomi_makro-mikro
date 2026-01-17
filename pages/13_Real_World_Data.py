@@ -26,6 +26,13 @@ T = {
         'phl': "Philippines",
         'chn': "China",
         'usa': "United States",
+        'jpn': "Japan",
+        'kor': "South Korea",
+        'aus': "Australia",
+        'ind': "India",
+        'gbr': "United Kingdom",
+        'deu': "Germany",
+        'bra': "Brazil",
         'fetch': "🔄 Fetch Live Data",
         'source': "Source: World Bank Open Data (API)",
         'error': "Error fetching data. World Bank API might be busy.",
@@ -49,6 +56,13 @@ T = {
         'phl': "Filipina",
         'chn': "Tiongkok",
         'usa': "Amerika Serikat",
+        'jpn': "Jepang",
+        'kor': "Korea Selatan",
+        'aus': "Australia",
+        'ind': "India",
+        'gbr': "Inggris (UK)",
+        'deu': "Jerman",
+        'bra': "Brasil",
         'fetch': "🔄 Ambil Data Langsung",
         'source': "Sumber: World Bank Open Data (API)",
         'error': "Gagal mengambil data. API Bank Dunia mungkin sibuk.",
@@ -78,7 +92,14 @@ country_map = {
     txt['vnm']: 'VNM',
     txt['phl']: 'PHL',
     txt['chn']: 'CHN',
-    txt['usa']: 'USA'
+    txt['usa']: 'USA',
+    txt['jpn']: 'JPN',
+    txt['kor']: 'KOR',
+    txt['aus']: 'AUS',
+    txt['ind']: 'IND',
+    txt['gbr']: 'GBR',
+    txt['deu']: 'DEU',
+    txt['bra']: 'BRA'
 }
 
 # --- SIDEBAR INPUTS ---
