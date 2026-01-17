@@ -57,7 +57,8 @@ T = {
         'story_users': "**Who needs this?**",
         'use_govt': "🏛️ **Government (Ministry of Finance):** To determine how much budget deficit is needed to reach the 5% Growth Target.",
         'use_corp': "🏢 **Corporations:** To forecast interest rate trends. If the model predicts a rate cut, firms should prepare to issue bonds or borrow for expansion.",
-        'use_analyst': "📈 **Market Analysts:** To assess if the government's growth targets are realistic or mere political rhetoric."
+        'use_analyst': "📈 **Market Analysts:** To assess if the government's growth targets are realistic or mere political rhetoric.",
+        'unit_capita': "Million Rp/Year"
     },
     'ID': {
         'title': "🎯 AI Pengoptimal Kebijakan Makro",
