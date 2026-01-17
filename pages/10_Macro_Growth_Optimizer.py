@@ -230,7 +230,31 @@ with col2:
             
             with res_col2:
                 st.markdown(f"#### {txt['analysis']}")
-                st.write(txt['explanation'].format(preference))
+                
+                # --- DYNAMIC INSIGHT GENERATION ---
+                # Determine direction of policies
+                fiscal_action = "menaikkan" if delta_G > 0 else "menurunkan"
+                monetary_action = "menurunkan" if delta_r > 0 else "menaikkan" # delta_r = r0 - r_new (positive = cut)
+                
+                insight_text = ""
+                if lang == 'EN':
+                    insight_text = f"""
+                    To close the **Rp {required_gap:,.0f} T** gap and reach **{target_pct}% Growth**, the AI suggests:
+                    1. **Fiscal Policy**: The Govt should **increase spending** by **Rp {delta_G:,.0f} T**.
+                    2. **Monetary Policy**: The Central Bank should **cut interest rates** by **{delta_r:.2f}%** to boost Investment by **Rp {delta_I:,.0f} T**.
+                    
+                    **Result:** This combined stimulus adds **Rp {total_increase:,.0f} T** to the economy, raising the average income by **Rp {final_capita - current_capita:,.1f} Million/person**.
+                    """
+                else:
+                    insight_text = f"""
+                    Untuk menutup gap **Rp {required_gap:,.0f} T** dan mencapai Pertumbuhan **{target_pct}%**, AI menyarankan:
+                    1. **Kebijakan Fiskal**: Pemerintah **{fiscal_action} belanja** sebesar **Rp {delta_G:,.0f} T**.
+                    2. **Kebijakan Moneter**: Bank Sentral **{monetary_action} suku bunga** sebesar **{abs(delta_r):.2f}%** untuk memacu Investasi sebesar **Rp {delta_I:,.0f} T**.
+                    
+                    **Dampak:** Stimulus gabungan ini menyuntikkan **Rp {total_increase:,.0f} T** ke ekonomi, menaikkan pendapatan rata-rata warga sebesar **Rp {final_capita - current_capita:,.1f} Juta/orang**.
+                    """
+                
+                st.info(insight_text)
                 
                 # Waterfall Chart Data
                 df_waterfall = pd.DataFrame({
