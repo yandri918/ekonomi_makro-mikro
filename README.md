@@ -2,7 +2,7 @@
 
 **A Professional Portfolio Project by Andriyanto
 
-Welcome to the **Intersection of Economic Theory and Advanced Analytics**. This Streamlit application demonstrates 14+ advanced modules bridging **Microeconomics**, **Macroeconomics**, and **Econometrics** using modern Data Science techniques (Python, Scipy, Altair, Plotly, and World Bank API).
+Welcome to the **Intersection of Economic Theory and Advanced Analytics**. This Streamlit application demonstrates **15+ advanced modules** bridging **Microeconomics**, **Macroeconomics**, and **Econometrics** using modern Data Science techniques (Python, Scipy, Altair, Plotly, and World Bank API).
 
 ##  Key Features
 
