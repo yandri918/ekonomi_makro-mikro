@@ -2,9 +2,10 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from numpy_financial import npv, irr
 
-st.set_page_config(page_title="Cost-Benefit Analysis", page_icon="🏗️", layout="wide")
+st.set_page_config(page_title="Infrastructure Project Evaluator", page_icon="🏗️", layout="wide")
 
 if 'language' not in st.session_state:
     st.session_state['language'] = 'ID'
@@ -12,118 +13,168 @@ lang = st.session_state['language']
 
 T = {
     'EN': {
-        'title': "🏗️ Cost-Benefit Analysis Tool",
-        'subtitle': "Evaluate infrastructure projects using **NPV**, **IRR**, and **Sensitivity Analysis**.",
-        'tab1': "💰 NPV/IRR Calculator",
-        'tab2': "📊 Sensitivity Analysis",
+        'title': "🏗️ Advanced Infrastructure Project Evaluator",
+        'subtitle': "Comprehensive cost-benefit analysis: NPV, IRR, BCR, economic value assessment, and sensitivity analysis for infrastructure projects.",
+        'tab1': "💰 Financial Analysis",
+        'tab2': "🌍 Economic Value",
+        'tab3': "📊 Sensitivity Analysis",
+        'tab4': "📈 Scenario Comparison",
         # Tab 1
-        'npv_theory': "**What is NPV?** Net Present Value = Total value of future cash flows minus initial investment (in today's money).",
-        'irr_theory': "**What is IRR?** Internal Rate of Return = The discount rate that makes NPV = 0 (break-even rate).",
-        'tutorial_btn': "📖 Tutorial: How to Use This Tool",
-        'project_inputs': "🏗️ Project Details",
+        'financial_title': "Financial Feasibility Analysis",
+        'project_setup': "Project Setup",
         'project_name': "Project Name",
         'initial_investment': "Initial Investment (Rp Billion)",
-        'investment_help': "Total upfront cost (negative number)",
-        'project_lifetime': "Project Lifetime (Years)",
+        'project_lifetime': "Project Lifetime (years)",
         'discount_rate': "Discount Rate (%)",
-        'discount_help': "Minimum acceptable return rate (WACC or government bond rate)",
-        'cash_flows': "💵 Annual Cash Flows (Rp Billion)",
-        'cash_flow_help': "Expected net income per year. Positive = profit, Negative = loss.",
-        'calc_npv': "🎯 Calculate NPV & IRR",
-        'results': "📋 Financial Analysis Results",
-        'npv_result': "Net Present Value (NPV)",
-        'irr_result': "Internal Rate of Return (IRR)",
-        'payback_period': "Payback Period",
-        'profitability_index': "Profitability Index (PI)",
+        'discount_help': "WACC or government bond rate",
+        'cash_flows': "Annual Cash Flows (Rp Billion)",
+        'year': "Year",
+        'cash_flow': "Cash Flow",
+        'calculate': "Calculate Metrics",
+        'financial_metrics': "Financial Metrics",
+        'npv': "Net Present Value (NPV)",
+        'irr': "Internal Rate of Return (IRR)",
+        'payback': "Payback Period",
+        'pi': "Profitability Index (PI)",
+        'bcr': "Benefit-Cost Ratio (BCR)",
         'decision': "Investment Decision",
-        'accept': "✅ ACCEPT - Project is profitable",
-        'reject': "❌ REJECT - Project is not profitable",
-        'npv_positive': "NPV > 0: Project creates value",
-        'npv_negative': "NPV < 0: Project destroys value",
-        'irr_high': "IRR ({irr:.2f}%) > Discount Rate ({dr:.2f}%): Good investment",
-        'irr_low': "IRR ({irr:.2f}%) < Discount Rate ({dr:.2f}%): Poor investment",
-        'payback_info': "Time to recover initial investment: {pb:.1f} years",
-        'pi_info': "Return per Rp 1 invested: Rp {pi:.2f}",
-        'chart_title': "Cash Flow Timeline",
-        'cumulative_cf': "Cumulative Cash Flow",
+        'accept': "✅ ACCEPT",
+        'reject': "❌ REJECT",
+        'marginal': "⚠️ MARGINAL",
+        'cash_flow_chart': "Cash Flow Timeline",
+        'cumulative': "Cumulative",
+        'annual': "Annual",
         # Tab 2
-        'sensitivity_theory': "**Sensitivity Analysis**: Shows how NPV changes when discount rate changes (risk assessment).",
-        'sensitivity_inputs': "📊 Sensitivity Parameters",
-        'min_rate': "Minimum Discount Rate (%)",
-        'max_rate': "Maximum Discount Rate (%)",
-        'calc_sensitivity': "📈 Run Sensitivity Analysis",
-        'sensitivity_results': "📋 Sensitivity Analysis Results",
+        'economic_title': "Economic Value Assessment",
+        'economic_benefits': "Economic Benefits (Externalities)",
+        'time_savings': "Time Savings Value (Rp Billion/year)",
+        'time_help': "Value of reduced travel time",
+        'accident_reduction': "Accident Reduction Value (Rp Billion/year)",
+        'accident_help': "Value of lives saved and injuries prevented",
+        'environmental': "Environmental Benefits (Rp Billion/year)",
+        'env_help': "Reduced emissions, pollution",
+        'employment': "Employment Creation (person-years)",
+        'emp_help': "Direct and indirect jobs created",
+        'multiplier': "Economic Multiplier",
+        'mult_help': "Indirect economic impact (typically 1.5-2.5)",
+        'economic_metrics': "Economic Impact Metrics",
+        'enpv': "Economic NPV (ENPV)",
+        'ebcr': "Economic BCR (EBCR)",
+        'social_roi': "Social Return on Investment",
+        'jobs_created': "Total Jobs Created",
+        'economic_value': "Total Economic Value",
+        # Tab 3
+        'sensitivity_title': "Sensitivity & Risk Analysis",
+        'sensitivity_params': "Sensitivity Parameters",
+        'discount_range': "Discount Rate Range (%)",
+        'cf_variation': "Cash Flow Variation (%)",
+        'cf_help': "Test optimistic/pessimistic scenarios",
+        'run_sensitivity': "Run Sensitivity Analysis",
+        'sensitivity_results': "Sensitivity Results",
         'breakeven_rate': "Break-Even Discount Rate",
-        'risk_assessment': "Risk Assessment",
-        'low_risk': "🟢 LOW RISK - NPV remains positive across wide range",
-        'medium_risk': "🟡 MEDIUM RISK - NPV sensitive to discount rate changes",
-        'high_risk': "🔴 HIGH RISK - NPV turns negative at modest rate increases",
-        'sensitivity_chart': "NPV Sensitivity to Discount Rate",
-        # Story
-        'story_title': "📚 Story & Use Cases: Cost-Benefit Analysis",
-        'story_meaning': "**What is this?**\nThis tool helps evaluate whether an infrastructure project (toll road, bridge, airport) is financially viable using NPV and IRR metrics.",
-        'story_insight': "**Key Insight:**\nNPV tells you HOW MUCH value a project creates. IRR tells you the RETURN RATE. Sensitivity Analysis shows RISK.",
+        'risk_level': "Risk Level",
+        'low_risk': "🟢 LOW RISK",
+        'medium_risk': "🟡 MEDIUM RISK",
+        'high_risk': "🔴 HIGH RISK",
+        'tornado_chart': "Tornado Diagram (Impact on NPV)",
+        # Tab 4
+        'scenario_title': "Scenario Comparison",
+        'add_scenario': "Add Scenario",
+        'scenario_name': "Scenario Name",
+        'scenario_investment': "Investment",
+        'scenario_annual_cf': "Annual Cash Flow",
+        'add_btn': "Add to Comparison",
+        'comparison_table': "Scenario Comparison Table",
+        'best_scenario': "Best Scenario",
+        'story_title': "📚 Story & Use Cases",
+        'story_meaning': "**What is this?**\nComprehensive infrastructure project evaluation tool combining financial analysis with economic value assessment.",
+        'story_insight': "**Key Insight:**\nInfrastructure projects create value beyond financial returns - time savings, safety, environmental benefits, and economic multipliers.",
         'story_users': "**Who needs this?**",
-        'use_govt': "🏛️ **Kementerian PUPR:** To evaluate feasibility of infrastructure projects before budget allocation.",
-        'use_corp': "🏢 **Private Developers:** To decide whether to invest in toll roads, power plants, or real estate projects.",
-        'use_analyst': "📈 **Financial Analysts:** To compare multiple projects and recommend the best investment."
+        'use_govt': "🏛️ **Government:** Evaluate public infrastructure investments.",
+        'use_developer': "🏢 **Developers:** Assess PPP project viability.",
+        'use_analyst': "📊 **Analysts:** Compare infrastructure alternatives."
     },
     'ID': {
-        'title': "🏗️ Alat Analisis Biaya-Manfaat",
-        'subtitle': "Evaluasi proyek infrastruktur menggunakan **NPV**, **IRR**, dan **Analisis Sensitivitas**.",
-        'tab1': "💰 Kalkulator NPV/IRR",
-        'tab2': "📊 Analisis Sensitivitas",
+        'title': "🏗️ Evaluator Proyek Infrastruktur Lanjutan",
+        'subtitle': "Analisis biaya-manfaat komprehensif: NPV, IRR, BCR, penilaian nilai ekonomi, dan analisis sensitivitas untuk proyek infrastruktur.",
+        'tab1': "💰 Analisis Keuangan",
+        'tab2': "🌍 Nilai Ekonomi",
+        'tab3': "📊 Analisis Sensitivitas",
+        'tab4': "📈 Perbandingan Skenario",
         # Tab 1
-        'npv_theory': "**Apa itu NPV?** Net Present Value = Total nilai arus kas masa depan dikurangi investasi awal (dalam nilai uang hari ini).",
-        'irr_theory': "**Apa itu IRR?** Internal Rate of Return = Tingkat diskonto yang membuat NPV = 0 (titik impas).",
-        'tutorial_btn': "📖 Tutorial: Cara Menggunakan Alat Ini",
-        'project_inputs': "🏗️ Detail Proyek",
+        'financial_title': "Analisis Kelayakan Keuangan",
+        'project_setup': "Pengaturan Proyek",
         'project_name': "Nama Proyek",
         'initial_investment': "Investasi Awal (Rp Miliar)",
-        'investment_help': "Total biaya di muka (angka negatif)",
-        'project_lifetime': "Umur Proyek (Tahun)",
+        'project_lifetime': "Umur Proyek (tahun)",
         'discount_rate': "Tingkat Diskonto (%)",
-        'discount_help': "Tingkat pengembalian minimum yang dapat diterima (WACC atau suku bunga obligasi pemerintah)",
-        'cash_flows': "💵 Arus Kas Tahunan (Rp Miliar)",
-        'cash_flow_help': "Pendapatan bersih yang diharapkan per tahun. Positif = untung, Negatif = rugi.",
-        'calc_npv': "🎯 Hitung NPV & IRR",
-        'results': "📋 Hasil Analisis Keuangan",
-        'npv_result': "Net Present Value (NPV)",
-        'irr_result': "Internal Rate of Return (IRR)",
-        'payback_period': "Periode Pengembalian",
-        'profitability_index': "Indeks Profitabilitas (PI)",
+        'discount_help': "WACC atau suku bunga obligasi pemerintah",
+        'cash_flows': "Arus Kas Tahunan (Rp Miliar)",
+        'year': "Tahun",
+        'cash_flow': "Arus Kas",
+        'calculate': "Hitung Metrik",
+        'financial_metrics': "Metrik Keuangan",
+        'npv': "Net Present Value (NPV)",
+        'irr': "Internal Rate of Return (IRR)",
+        'payback': "Periode Pengembalian",
+        'pi': "Indeks Profitabilitas (PI)",
+        'bcr': "Rasio Manfaat-Biaya (BCR)",
         'decision': "Keputusan Investasi",
-        'accept': "✅ TERIMA - Proyek menguntungkan",
-        'reject': "❌ TOLAK - Proyek tidak menguntungkan",
-        'npv_positive': "NPV > 0: Proyek menciptakan nilai",
-        'npv_negative': "NPV < 0: Proyek menghancurkan nilai",
-        'irr_high': "IRR ({irr:.2f}%) > Tingkat Diskonto ({dr:.2f}%): Investasi bagus",
-        'irr_low': "IRR ({irr:.2f}%) < Tingkat Diskonto ({dr:.2f}%): Investasi buruk",
-        'payback_info': "Waktu untuk kembali modal: {pb:.1f} tahun",
-        'pi_info': "Pengembalian per Rp 1 yang diinvestasikan: Rp {pi:.2f}",
-        'chart_title': "Timeline Arus Kas",
-        'cumulative_cf': "Arus Kas Kumulatif",
+        'accept': "✅ TERIMA",
+        'reject': "❌ TOLAK",
+        'marginal': "⚠️ MARGINAL",
+        'cash_flow_chart': "Timeline Arus Kas",
+        'cumulative': "Kumulatif",
+        'annual': "Tahunan",
         # Tab 2
-        'sensitivity_theory': "**Analisis Sensitivitas**: Menunjukkan bagaimana NPV berubah ketika tingkat diskonto berubah (penilaian risiko).",
-        'sensitivity_inputs': "📊 Parameter Sensitivitas",
-        'min_rate': "Tingkat Diskonto Minimum (%)",
-        'max_rate': "Tingkat Diskonto Maksimum (%)",
-        'calc_sensitivity': "📈 Jalankan Analisis Sensitivitas",
-        'sensitivity_results': "📋 Hasil Analisis Sensitivitas",
+        'economic_title': "Penilaian Nilai Ekonomi",
+        'economic_benefits': "Manfaat Ekonomi (Eksternalitas)",
+        'time_savings': "Nilai Penghematan Waktu (Rp Miliar/tahun)",
+        'time_help': "Nilai dari pengurangan waktu perjalanan",
+        'accident_reduction': "Nilai Pengurangan Kecelakaan (Rp Miliar/tahun)",
+        'accident_help': "Nilai nyawa yang diselamatkan dan cedera yang dicegah",
+        'environmental': "Manfaat Lingkungan (Rp Miliar/tahun)",
+        'env_help': "Pengurangan emisi, polusi",
+        'employment': "Penciptaan Lapangan Kerja (orang-tahun)",
+        'emp_help': "Pekerjaan langsung dan tidak langsung yang tercipta",
+        'multiplier': "Multiplier Ekonomi",
+        'mult_help': "Dampak ekonomi tidak langsung (biasanya 1.5-2.5)",
+        'economic_metrics': "Metrik Dampak Ekonomi",
+        'enpv': "NPV Ekonomi (ENPV)",
+        'ebcr': "BCR Ekonomi (EBCR)",
+        'social_roi': "Return on Investment Sosial",
+        'jobs_created': "Total Lapangan Kerja Tercipta",
+        'economic_value': "Total Nilai Ekonomi",
+        # Tab 3
+        'sensitivity_title': "Analisis Sensitivitas & Risiko",
+        'sensitivity_params': "Parameter Sensitivitas",
+        'discount_range': "Rentang Tingkat Diskonto (%)",
+        'cf_variation': "Variasi Arus Kas (%)",
+        'cf_help': "Uji skenario optimis/pesimis",
+        'run_sensitivity': "Jalankan Analisis Sensitivitas",
+        'sensitivity_results': "Hasil Sensitivitas",
         'breakeven_rate': "Tingkat Diskonto Titik Impas",
-        'risk_assessment': "Penilaian Risiko",
-        'low_risk': "🟢 RISIKO RENDAH - NPV tetap positif di berbagai tingkat",
-        'medium_risk': "🟡 RISIKO SEDANG - NPV sensitif terhadap perubahan tingkat diskonto",
-        'high_risk': "🔴 RISIKO TINGGI - NPV menjadi negatif pada kenaikan tingkat yang moderat",
-        'sensitivity_chart': "Sensitivitas NPV terhadap Tingkat Diskonto",
-        # Story
-        'story_title': "📚 Cerita & Kasus Penggunaan: Analisis Biaya-Manfaat",
-        'story_meaning': "**Apa artinya ini?**\nAlat ini membantu mengevaluasi apakah proyek infrastruktur (jalan tol, jembatan, bandara) layak secara finansial menggunakan metrik NPV dan IRR.",
-        'story_insight': "**Wawasan Utama:**\nNPV memberi tahu Anda BERAPA BANYAK nilai yang diciptakan proyek. IRR memberi tahu Anda TINGKAT PENGEMBALIAN. Analisis Sensitivitas menunjukkan RISIKO.",
+        'risk_level': "Tingkat Risiko",
+        'low_risk': "🟢 RISIKO RENDAH",
+        'medium_risk': "🟡 RISIKO SEDANG",
+        'high_risk': "🔴 RISIKO TINGGI",
+        'tornado_chart': "Diagram Tornado (Dampak pada NPV)",
+        # Tab 4
+        'scenario_title': "Perbandingan Skenario",
+        'add_scenario': "Tambah Skenario",
+        'scenario_name': "Nama Skenario",
+        'scenario_investment': "Investasi",
+        'scenario_annual_cf': "Arus Kas Tahunan",
+        'add_btn': "Tambah ke Perbandingan",
+        'comparison_table': "Tabel Perbandingan Skenario",
+        'best_scenario': "Skenario Terbaik",
+        'story_title': "📚 Cerita & Kasus Penggunaan",
+        'story_meaning': "**Apa artinya ini?**\nAlat evaluasi proyek infrastruktur komprehensif yang menggabungkan analisis keuangan dengan penilaian nilai ekonomi.",
+        'story_insight': "**Wawasan Utama:**\nProyek infrastruktur menciptakan nilai di luar pengembalian finansial - penghematan waktu, keselamatan, manfaat lingkungan, dan multiplier ekonomi.",
         'story_users': "**Siapa yang butuh ini?**",
-        'use_govt': "🏛️ **Kementerian PUPR:** Untuk mengevaluasi kelayakan proyek infrastruktur sebelum alokasi anggaran.",
-        'use_corp': "🏢 **Pengembang Swasta:** Untuk memutuskan apakah akan berinvestasi di jalan tol, pembangkit listrik, atau proyek real estat.",
-        'use_analyst': "📈 **Analis Keuangan:** Untuk membandingkan beberapa proyek dan merekomendasikan investasi terbaik."
+        'use_govt': "🏛️ **Pemerintah:** Evaluasi investasi infrastruktur publik.",
+        'use_developer': "🏢 **Pengembang:** Menilai kelayakan proyek PPP.",
+        'use_analyst': "📊 **Analis:** Membandingkan alternatif infrastruktur."
     }
 }
 
@@ -132,361 +183,394 @@ txt = T[lang]
 st.title(txt['title'])
 st.markdown(txt['subtitle'])
 
-# Tutorial Expander
-with st.expander(txt['tutorial_btn']):
-    if lang == 'ID':
-        st.markdown("""
-        ### 📖 Panduan Lengkap: Analisis Biaya-Manfaat
-        
-        #### **1. Apa itu NPV (Net Present Value)?**
-        NPV adalah **total nilai uang** yang akan Anda dapatkan dari proyek, dihitung dalam nilai uang **hari ini**.
-        
-        **Contoh Sederhana:**
-        - Anda investasi **Rp 1 Miliar** untuk membangun jalan tol.
-        - Setiap tahun, jalan tol menghasilkan **Rp 300 Juta** selama 5 tahun.
-        - **Pertanyaan**: Apakah investasi ini menguntungkan?
-        
-        **Rumus NPV:**
-        ```
-        NPV = (Arus Kas Tahun 1 / (1+r)^1) + (Arus Kas Tahun 2 / (1+r)^2) + ... - Investasi Awal
-        ```
-        Dimana `r` = Tingkat diskonto (misal 10%)
-        
-        **Interpretasi:**
-        - **NPV > 0** → Proyek **UNTUNG** ✅
-        - **NPV < 0** → Proyek **RUGI** ❌
-        - **NPV = 0** → Proyek **IMPAS** (tidak untung, tidak rugi)
-        
-        ---
-        
-        #### **2. Apa itu IRR (Internal Rate of Return)?**
-        IRR adalah **tingkat pengembalian** yang membuat NPV = 0. Ini adalah "bunga" yang Anda dapatkan dari proyek.
-        
-        **Contoh:**
-        - Jika IRR = **15%**, artinya proyek memberikan return **15% per tahun**.
-        - Jika tingkat diskonto Anda (misal suku bunga bank) = **10%**, maka proyek ini **lebih baik** dari menyimpan uang di bank.
-        
-        **Keputusan:**
-        - **IRR > Tingkat Diskonto** → **TERIMA** proyek ✅
-        - **IRR < Tingkat Diskonto** → **TOLAK** proyek ❌
-        
-        ---
-        
-        #### **3. Apa itu Tingkat Diskonto?**
-        Tingkat diskonto adalah **tingkat pengembalian minimum** yang Anda harapkan. Biasanya:
-        - **Pemerintah**: Suku bunga obligasi pemerintah (~6-7%)
-        - **Perusahaan Swasta**: WACC (Weighted Average Cost of Capital) (~10-15%)
-        
-        **Mengapa penting?**
-        Uang **hari ini** lebih berharga daripada uang **masa depan** karena inflasi dan risiko.
-        
-        ---
-        
-        #### **4. Contoh Praktis:**
-        **Proyek**: Membangun Jembatan Tol
-        - **Investasi Awal**: Rp 10 Miliar
-        - **Arus Kas Tahunan**: Rp 2 Miliar (Tahun 1-7)
-        - **Tingkat Diskonto**: 8%
-        
-        **Hasil:**
-        - **NPV** ≈ Rp 1.5 Miliar (POSITIF → Proyek layak!)
-        - **IRR** ≈ 12% (Lebih tinggi dari 8% → Investasi bagus!)
-        - **Payback Period** ≈ 5 tahun (Modal kembali dalam 5 tahun)
-        """)
-    else:
-        st.markdown("""
-        ### 📖 Complete Guide: Cost-Benefit Analysis
-        
-        #### **1. What is NPV (Net Present Value)?**
-        NPV is the **total money value** you will get from a project, calculated in **today's money**.
-        
-        **Simple Example:**
-        - You invest **Rp 1 Billion** to build a toll road.
-        - Each year, the toll road generates **Rp 300 Million** for 5 years.
-        - **Question**: Is this investment profitable?
-        
-        **NPV Formula:**
-        ```
-        NPV = (Cash Flow Year 1 / (1+r)^1) + (Cash Flow Year 2 / (1+r)^2) + ... - Initial Investment
-        ```
-        Where `r` = Discount rate (e.g., 10%)
-        
-        **Interpretation:**
-        - **NPV > 0** → Project is **PROFITABLE** ✅
-        - **NPV < 0** → Project is **UNPROFITABLE** ❌
-        - **NPV = 0** → Project **BREAKS EVEN**
-        
-        ---
-        
-        #### **2. What is IRR (Internal Rate of Return)?**
-        IRR is the **return rate** that makes NPV = 0. It's the "interest" you earn from the project.
-        
-        **Example:**
-        - If IRR = **15%**, the project gives a return of **15% per year**.
-        - If your discount rate (e.g., bank interest) = **10%**, then this project is **better** than saving money in a bank.
-        
-        **Decision:**
-        - **IRR > Discount Rate** → **ACCEPT** project ✅
-        - **IRR < Discount Rate** → **REJECT** project ❌
-        
-        ---
-        
-        #### **3. What is Discount Rate?**
-        Discount rate is the **minimum return rate** you expect. Typically:
-        - **Government**: Government bond rate (~6-7%)
-        - **Private Companies**: WACC (Weighted Average Cost of Capital) (~10-15%)
-        
-        **Why important?**
-        Money **today** is more valuable than money **in the future** due to inflation and risk.
-        
-        ---
-        
-        #### **4. Practical Example:**
-        **Project**: Building a Toll Bridge
-        - **Initial Investment**: Rp 10 Billion
-        - **Annual Cash Flow**: Rp 2 Billion (Years 1-7)
-        - **Discount Rate**: 8%
-        
-        **Results:**
-        - **NPV** ≈ Rp 1.5 Billion (POSITIVE → Project is feasible!)
-        - **IRR** ≈ 12% (Higher than 8% → Good investment!)
-        - **Payback Period** ≈ 5 years (Capital recovered in 5 years)
-        """)
+# Initialize session state
+if 'scenarios' not in st.session_state:
+    st.session_state['scenarios'] = []
 
-# --- TABS ---
-tab1, tab2 = st.tabs([txt['tab1'], txt['tab2']])
+# TABS
+tab1, tab2, tab3, tab4 = st.tabs([txt['tab1'], txt['tab2'], txt['tab3'], txt['tab4']])
 
-# ========== TAB 1: NPV/IRR CALCULATOR ==========
+# ========== TAB 1: FINANCIAL ANALYSIS ==========
 with tab1:
-    st.info(txt['npv_theory'])
-    st.caption(txt['irr_theory'])
+    st.markdown(f"### {txt['financial_title']}")
     
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.subheader(txt['project_inputs'])
-        project_name = st.text_input(txt['project_name'], value="Toll Road Project")
-        initial_investment = st.number_input(txt['initial_investment'], value=-10.0, step=0.5, help=txt['investment_help'])
-        project_lifetime = st.slider(txt['project_lifetime'], 1, 20, 10)
-        discount_rate_pct = st.number_input(txt['discount_rate'], value=8.0, step=0.5, help=txt['discount_help'])
+        st.markdown(f"#### {txt['project_setup']}")
         
-        st.markdown("---")
-        st.subheader(txt['cash_flows'])
-        st.caption(txt['cash_flow_help'])
+        project_name = st.text_input(txt['project_name'], value="Jalan Tol Trans-Java")
+        initial_investment = st.number_input(txt['initial_investment'], value=10.0, step=0.5)
+        lifetime = st.slider(txt['project_lifetime'], 5, 50, 20)
+        discount_rate = st.number_input(txt['discount_rate'], value=8.0, step=0.5, help=txt['discount_help'])
         
-        # Initialize cash flows
-        if 'cash_flows' not in st.session_state:
-            st.session_state['cash_flows'] = pd.DataFrame({
-                'Year': list(range(1, 11)),
-                'Cash Flow (Rp Billion)': [2.0] * 10
-            })
+        st.markdown(f"#### {txt['cash_flows']}")
         
-        # Adjust dataframe size based on project lifetime
-        current_years = len(st.session_state['cash_flows'])
-        if project_lifetime != current_years:
-            if project_lifetime > current_years:
-                # Add rows
-                new_rows = pd.DataFrame({
-                    'Year': list(range(current_years + 1, project_lifetime + 1)),
-                    'Cash Flow (Rp Billion)': [2.0] * (project_lifetime - current_years)
-                })
-                st.session_state['cash_flows'] = pd.concat([st.session_state['cash_flows'], new_rows], ignore_index=True)
-            else:
-                # Remove rows
-                st.session_state['cash_flows'] = st.session_state['cash_flows'].iloc[:project_lifetime]
+        # Cash flow input
+        cash_flows = []
+        for year in range(1, lifetime + 1):
+            cf = st.number_input(f"{txt['year']} {year}", value=1.0, step=0.1, key=f'cf_{year}')
+            cash_flows.append(cf)
         
-        edited_cf = st.data_editor(
-            st.session_state['cash_flows'],
-            use_container_width=True,
-            hide_index=True,
-            key='cf_editor'
-        )
-        
-        # Update session state with edited values
-        if edited_cf is not None:
-            st.session_state['cash_flows'] = edited_cf.copy()
-        
-        calc_btn = st.button(txt['calc_npv'], type='primary', key='calc_npv_btn')
-    
-    with col2:
-        # Always show results if calculation has been done
-        if calc_btn or 'npv_results' in st.session_state:
-            if calc_btn:
-                # Prepare cash flows from session state
-                cash_flows_array = np.concatenate([[initial_investment], st.session_state['cash_flows']['Cash Flow (Rp Billion)'].values])
-            discount_rate = discount_rate_pct / 100
+        if st.button(txt['calculate'], type='primary'):
+            # Financial calculations
+            all_cash_flows = [-initial_investment] + cash_flows
             
-            # Calculate NPV
-            npv_value = npv(discount_rate, cash_flows_array)
+            npv_value = npv(discount_rate/100, all_cash_flows)
             
-            # Calculate IRR
             try:
-                irr_value = irr(cash_flows_array) * 100
+                irr_value = irr(all_cash_flows) * 100
             except:
                 irr_value = None
             
-            # Calculate Payback Period
-            cumulative_cf = np.cumsum(cash_flows_array)
-            payback_idx = np.where(cumulative_cf > 0)[0]
-            if len(payback_idx) > 0:
-                payback_period = payback_idx[0]
-            else:
-                payback_period = None
+            # Payback period
+            cumulative = np.cumsum(all_cash_flows)
+            payback_idx = np.where(cumulative > 0)[0]
+            payback_period = payback_idx[0] if len(payback_idx) > 0 else None
             
             # Profitability Index
-            pv_future_cf = npv_value - initial_investment
-            pi = pv_future_cf / abs(initial_investment) if initial_investment != 0 else 0
+            pv_benefits = sum([cf / (1 + discount_rate/100)**i for i, cf in enumerate(cash_flows, 1)])
+            pi_value = pv_benefits / initial_investment if initial_investment > 0 else 0
             
-            st.subheader(txt['results'])
+            # Benefit-Cost Ratio
+            bcr_value = (npv_value + initial_investment) / initial_investment if initial_investment > 0 else 0
             
-            # Metrics
-            m1, m2, m3, m4 = st.columns(4)
-            m1.metric(txt['npv_result'], f"Rp {npv_value:.2f}B")
-            if irr_value is not None:
-                m2.metric(txt['irr_result'], f"{irr_value:.2f}%")
+            st.session_state['financial_results'] = {
+                'npv': npv_value,
+                'irr': irr_value,
+                'payback': payback_period,
+                'pi': pi_value,
+                'bcr': bcr_value,
+                'cash_flows': all_cash_flows,
+                'discount_rate': discount_rate,
+                'initial_investment': initial_investment
+            }
+    
+    with col2:
+        if 'financial_results' in st.session_state:
+            results = st.session_state['financial_results']
+            
+            st.markdown(f"### {txt['financial_metrics']}")
+            
+            m1, m2, m3 = st.columns(3)
+            m1.metric(txt['npv'], f"Rp {results['npv']:.2f}B")
+            if results['irr'] is not None:
+                m2.metric(txt['irr'], f"{results['irr']:.2f}%")
             else:
-                m2.metric(txt['irr_result'], "N/A")
+                m2.metric(txt['irr'], "N/A")
             
-            if payback_period is not None:
-                m3.metric(txt['payback_period'], f"{payback_period} years")
+            if results['payback'] is not None:
+                m3.metric(txt['payback'], f"{results['payback']} years")
             else:
-                m3.metric(txt['payback_period'], "> Lifetime")
+                m3.metric(txt['payback'], "Never")
             
-            m4.metric(txt['profitability_index'], f"{pi:.2f}")
+            m4, m5 = st.columns(2)
+            m4.metric(txt['pi'], f"{results['pi']:.2f}")
+            m5.metric(txt['bcr'], f"{results['bcr']:.2f}")
             
             # Decision
-            st.markdown("---")
-            st.subheader(txt['decision'])
+            st.markdown(f"### {txt['decision']}")
             
-            if npv_value > 0:
-                st.success(txt['accept'])
-                st.info(txt['npv_positive'])
+            if results['npv'] > 0 and (results['irr'] is None or results['irr'] > results['discount_rate']):
+                st.success(f"{txt['accept']} - NPV > 0 and IRR > Discount Rate")
+            elif results['npv'] < 0:
+                st.error(f"{txt['reject']} - NPV < 0")
             else:
-                st.error(txt['reject'])
-                st.warning(txt['npv_negative'])
+                st.warning(f"{txt['marginal']} - Requires further analysis")
             
-            if irr_value is not None:
-                if irr_value > discount_rate_pct:
-                    st.success(txt['irr_high'].format(irr=irr_value, dr=discount_rate_pct))
-                else:
-                    st.warning(txt['irr_low'].format(irr=irr_value, dr=discount_rate_pct))
+            # Cash flow chart
+            st.markdown(f"### {txt['cash_flow_chart']}")
             
-            if payback_period is not None:
-                st.info(txt['payback_info'].format(pb=payback_period))
+            years = list(range(len(results['cash_flows'])))
+            cumulative_cf = np.cumsum(results['cash_flows'])
             
-            st.info(txt['pi_info'].format(pi=pi))
+            fig = make_subplots(rows=2, cols=1,
+                               subplot_titles=(txt['annual'], txt['cumulative']))
             
-            # Visualization
-            st.markdown("---")
-            st.subheader(txt['chart_title'])
+            fig.add_trace(go.Bar(x=years, y=results['cash_flows'], name=txt['annual'],
+                                marker_color=['red' if x < 0 else 'green' for x in results['cash_flows']]),
+                         row=1, col=1)
             
-            years = ['Year 0'] + [f'Year {i}' for i in range(1, project_lifetime + 1)]
+            fig.add_trace(go.Scatter(x=years, y=cumulative_cf, mode='lines+markers',
+                                    name=txt['cumulative'], line=dict(color='blue', width=3)),
+                         row=2, col=1)
+            fig.add_hline(y=0, line_dash="dash", line_color="gray", row=2, col=1)
             
-            fig = go.Figure()
-            
-            # Cash Flow Bars
-            fig.add_trace(go.Bar(
-                x=years,
-                y=cash_flows_array,
-                name='Cash Flow',
-                marker_color=['red' if cf < 0 else 'green' for cf in cash_flows_array]
-            ))
-            
-            # Cumulative Cash Flow Line
-            fig.add_trace(go.Scatter(
-                x=years,
-                y=cumulative_cf,
-                name=txt['cumulative_cf'],
-                mode='lines+markers',
-                line=dict(color='blue', width=3)
-            ))
-            
-            # Zero line
-            fig.add_hline(y=0, line_dash="dash", line_color="gray")
-            
-            fig.update_layout(
-                title=txt['chart_title'],
-                xaxis_title="Year",
-                yaxis_title="Rp Billion",
-                hovermode='x unified',
-                height=500
-            )
+            fig.update_xaxes(title_text="Year", row=2, col=1)
+            fig.update_yaxes(title_text="Cash Flow (Rp B)", row=1, col=1)
+            fig.update_yaxes(title_text="Cumulative (Rp B)", row=2, col=1)
+            fig.update_layout(height=700, showlegend=False)
             
             st.plotly_chart(fig, use_container_width=True)
 
-# ========== TAB 2: SENSITIVITY ANALYSIS ==========
+# ========== TAB 2: ECONOMIC VALUE ==========
 with tab2:
-    st.info(txt['sensitivity_theory'])
+    st.markdown(f"### {txt['economic_title']}")
     
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.subheader(txt['sensitivity_inputs'])
-        min_rate = st.number_input(txt['min_rate'], value=2.0, step=0.5)
-        max_rate = st.number_input(txt['max_rate'], value=20.0, step=0.5)
+        st.markdown(f"#### {txt['economic_benefits']}")
         
-        calc_sens_btn = st.button(txt['calc_sensitivity'], type='primary')
+        time_savings = st.number_input(txt['time_savings'], value=2.0, step=0.1, help=txt['time_help'])
+        accident_reduction = st.number_input(txt['accident_reduction'], value=0.5, step=0.1, help=txt['accident_help'])
+        environmental = st.number_input(txt['environmental'], value=0.3, step=0.1, help=txt['env_help'])
+        employment = st.number_input(txt['employment'], value=5000, step=100, help=txt['emp_help'])
+        multiplier = st.number_input(txt['multiplier'], value=2.0, step=0.1, help=txt['mult_help'])
+        
+        if st.button(txt['calculate'], type='primary', key='econ_calc'):
+            if 'financial_results' in st.session_state:
+                fin = st.session_state['financial_results']
+                
+                # Economic benefits per year
+                annual_econ_benefits = time_savings + accident_reduction + environmental
+                
+                # Total economic cash flows
+                econ_cash_flows = [-fin['initial_investment']]
+                for i, cf in enumerate(fin['cash_flows'][1:], 1):
+                    econ_cash_flows.append(cf + annual_econ_benefits)
+                
+                # Economic NPV
+                enpv = npv(fin['discount_rate']/100, econ_cash_flows)
+                
+                # Economic BCR
+                pv_econ_benefits = sum([(cf + annual_econ_benefits) / (1 + fin['discount_rate']/100)**i 
+                                       for i, cf in enumerate(fin['cash_flows'], 1)])
+                ebcr = pv_econ_benefits / fin['initial_investment'] if fin['initial_investment'] > 0 else 0
+                
+                # Social ROI
+                total_econ_value = enpv + fin['initial_investment']
+                social_roi = (total_econ_value / fin['initial_investment']) * 100 if fin['initial_investment'] > 0 else 0
+                
+                # Total jobs (direct + indirect via multiplier)
+                total_jobs = employment * multiplier
+                
+                st.session_state['economic_results'] = {
+                    'enpv': enpv,
+                    'ebcr': ebcr,
+                    'social_roi': social_roi,
+                    'total_jobs': total_jobs,
+                    'total_value': total_econ_value,
+                    'annual_benefits': annual_econ_benefits
+                }
+            else:
+                st.warning("Run financial analysis first!")
     
     with col2:
-        if calc_sens_btn and 'cash_flows' in st.session_state:
-            # Prepare cash flows
-            cash_flows_array = np.concatenate([[initial_investment], st.session_state['cash_flows']['Cash Flow (Rp Billion)'].values])
+        if 'economic_results' in st.session_state:
+            results = st.session_state['economic_results']
             
-            # Generate discount rate range
-            discount_rates = np.linspace(min_rate, max_rate, 100) / 100
-            npv_values = [npv(r, cash_flows_array) for r in discount_rates]
+            st.markdown(f"### {txt['economic_metrics']}")
             
-            # Find break-even rate (where NPV = 0)
-            try:
-                breakeven_rate = irr(cash_flows_array) * 100
-            except:
-                breakeven_rate = None
+            e1, e2, e3 = st.columns(3)
+            e1.metric(txt['enpv'], f"Rp {results['enpv']:.2f}B")
+            e2.metric(txt['ebcr'], f"{results['ebcr']:.2f}")
+            e3.metric(txt['social_roi'], f"{results['social_roi']:.1f}%")
             
-            st.subheader(txt['sensitivity_results'])
+            e4, e5 = st.columns(2)
+            e4.metric(txt['jobs_created'], f"{results['total_jobs']:,.0f}")
+            e5.metric(txt['economic_value'], f"Rp {results['total_value']:.2f}B")
             
-            if breakeven_rate is not None:
-                st.metric(txt['breakeven_rate'], f"{breakeven_rate:.2f}%")
+            # Comparison chart
+            if 'financial_results' in st.session_state:
+                fin = st.session_state['financial_results']
                 
-                # Risk Assessment
-                if breakeven_rate > max_rate:
-                    st.success(txt['low_risk'])
-                elif breakeven_rate > (min_rate + max_rate) / 2:
-                    st.warning(txt['medium_risk'])
+                fig = go.Figure()
+                
+                categories = ['NPV', 'BCR']
+                financial = [fin['npv'], fin['bcr']]
+                economic = [results['enpv'], results['ebcr']]
+                
+                fig.add_trace(go.Bar(name='Financial', x=categories, y=financial, marker_color='blue'))
+                fig.add_trace(go.Bar(name='Economic', x=categories, y=economic, marker_color='green'))
+                
+                fig.update_layout(
+                    title="Financial vs Economic Value",
+                    barmode='group',
+                    height=400
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
+                st.info(f"""
+                **Economic Value Added:**
+                - Annual economic benefits: Rp {results['annual_benefits']:.2f}B
+                - Economic NPV exceeds Financial NPV by: Rp {results['enpv'] - fin['npv']:.2f}B
+                - This represents the social value created beyond financial returns
+                """)
+
+# ========== TAB 3: SENSITIVITY ANALYSIS ==========
+with tab3:
+    st.markdown(f"### {txt['sensitivity_title']}")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.markdown(f"#### {txt['sensitivity_params']}")
+        
+        min_rate, max_rate = st.slider(txt['discount_range'], 0.0, 20.0, (5.0, 15.0), 0.5)
+        cf_variation = st.slider(txt['cf_variation'], -50, 50, (-20, 20), 5, help=txt['cf_help'])
+        
+        if st.button(txt['run_sensitivity'], type='primary'):
+            if 'financial_results' in st.session_state:
+                fin = st.session_state['financial_results']
+                
+                # Discount rate sensitivity
+                rates = np.linspace(min_rate, max_rate, 50)
+                npvs = [npv(r/100, fin['cash_flows']) for r in rates]
+                
+                # Find break-even rate
+                breakeven_idx = np.where(np.array(npvs) < 0)[0]
+                breakeven_rate = rates[breakeven_idx[0]] if len(breakeven_idx) > 0 else max_rate
+                
+                # Cash flow sensitivity
+                base_cf = fin['cash_flows'][1:]  # Exclude initial investment
+                pessimistic_cf = [-fin['initial_investment']] + [cf * (1 + cf_variation[0]/100) for cf in base_cf]
+                optimistic_cf = [-fin['initial_investment']] + [cf * (1 + cf_variation[1]/100) for cf in base_cf]
+                
+                npv_pessimistic = npv(fin['discount_rate']/100, pessimistic_cf)
+                npv_optimistic = npv(fin['discount_rate']/100, optimistic_cf)
+                
+                # Risk assessment
+                if breakeven_rate > fin['discount_rate'] + 5:
+                    risk = txt['low_risk']
+                elif breakeven_rate > fin['discount_rate'] + 2:
+                    risk = txt['medium_risk']
                 else:
-                    st.error(txt['high_risk'])
+                    risk = txt['high_risk']
+                
+                st.session_state['sensitivity_results'] = {
+                    'rates': rates,
+                    'npvs': npvs,
+                    'breakeven': breakeven_rate,
+                    'risk': risk,
+                    'npv_pessimistic': npv_pessimistic,
+                    'npv_optimistic': npv_optimistic,
+                    'cf_variation': cf_variation
+                }
+            else:
+                st.warning("Run financial analysis first!")
+    
+    with col2:
+        if 'sensitivity_results' in st.session_state:
+            results = st.session_state['sensitivity_results']
             
-            # Visualization
-            st.markdown("---")
-            st.subheader(txt['sensitivity_chart'])
+            st.markdown(f"### {txt['sensitivity_results']}")
             
+            s1, s2 = st.columns(2)
+            s1.metric(txt['breakeven_rate'], f"{results['breakeven']:.2f}%")
+            s2.metric(txt['risk_level'], results['risk'])
+            
+            # NPV vs Discount Rate
             fig = go.Figure()
             
-            # NPV Line
-            fig.add_trace(go.Scatter(
-                x=discount_rates * 100,
-                y=npv_values,
-                mode='lines',
-                name='NPV',
-                line=dict(color='blue', width=3),
-                fill='tozeroy',
-                fillcolor='rgba(0, 100, 255, 0.2)'
-            ))
-            
-            # Zero line
-            fig.add_hline(y=0, line_dash="dash", line_color="red", annotation_text="NPV = 0")
-            
-            # Current discount rate
-            fig.add_vline(x=discount_rate_pct, line_dash="dot", line_color="green", annotation_text=f"Current: {discount_rate_pct}%")
+            fig.add_trace(go.Scatter(x=results['rates'], y=results['npvs'],
+                                    mode='lines', name='NPV',
+                                    line=dict(color='blue', width=3)))
+            fig.add_hline(y=0, line_dash="dash", line_color="red")
+            fig.add_vline(x=results['breakeven'], line_dash="dash", line_color="orange")
             
             fig.update_layout(
-                title=txt['sensitivity_chart'],
+                title="NPV Sensitivity to Discount Rate",
                 xaxis_title="Discount Rate (%)",
                 yaxis_title="NPV (Rp Billion)",
-                hovermode='x unified',
-                height=500
+                height=400
             )
             
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Tornado diagram
+            fin = st.session_state['financial_results']
+            base_npv = fin['npv']
+            
+            impacts = {
+                f"Cash Flow ({results['cf_variation'][0]}%)": results['npv_pessimistic'] - base_npv,
+                f"Cash Flow (+{results['cf_variation'][1]}%)": results['npv_optimistic'] - base_npv
+            }
+            
+            fig_tornado = go.Figure()
+            
+            for label, impact in impacts.items():
+                color = 'red' if impact < 0 else 'green'
+                fig_tornado.add_trace(go.Bar(
+                    y=[label],
+                    x=[abs(impact)],
+                    orientation='h',
+                    marker_color=color,
+                    name=label
+                ))
+            
+            fig_tornado.update_layout(
+                title=txt['tornado_chart'],
+                xaxis_title="Impact on NPV (Rp Billion)",
+                height=300,
+                showlegend=False
+            )
+            
+            st.plotly_chart(fig_tornado, use_container_width=True)
+
+# ========== TAB 4: SCENARIO COMPARISON ==========
+with tab4:
+    st.markdown(f"### {txt['scenario_title']}")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.markdown(f"#### {txt['add_scenario']}")
+        
+        scenario_name = st.text_input(txt['scenario_name'], value="Scenario A")
+        scenario_investment = st.number_input(txt['scenario_investment'], value=10.0, step=0.5, key='sc_inv')
+        scenario_annual_cf = st.number_input(txt['scenario_annual_cf'], value=1.5, step=0.1, key='sc_cf')
+        scenario_years = st.slider("Years", 5, 30, 15, key='sc_years')
+        
+        if st.button(txt['add_btn']):
+            cash_flows = [-scenario_investment] + [scenario_annual_cf] * scenario_years
+            npv_val = npv(0.08, cash_flows)
+            
+            try:
+                irr_val = irr(cash_flows) * 100
+            except:
+                irr_val = None
+            
+            st.session_state['scenarios'].append({
+                'Name': scenario_name,
+                'Investment': scenario_investment,
+                'Annual CF': scenario_annual_cf,
+                'Years': scenario_years,
+                'NPV': npv_val,
+                'IRR': irr_val if irr_val else 0
+            })
+            st.success(f"Added {scenario_name}!")
+    
+    with col2:
+        if len(st.session_state['scenarios']) > 0:
+            df_scenarios = pd.DataFrame(st.session_state['scenarios'])
+            
+            st.markdown(f"### {txt['comparison_table']}")
+            
+            st.dataframe(df_scenarios.style.highlight_max(subset=['NPV', 'IRR'], color='lightgreen'),
+                        use_container_width=True, hide_index=True)
+            
+            # Best scenario
+            best_idx = df_scenarios['NPV'].idxmax()
+            st.success(f"🏆 {txt['best_scenario']}: {df_scenarios.iloc[best_idx]['Name']} (NPV: Rp {df_scenarios.iloc[best_idx]['NPV']:.2f}B)")
+            
+            # Comparison chart
+            fig = go.Figure()
+            
+            fig.add_trace(go.Bar(name='NPV', x=df_scenarios['Name'], y=df_scenarios['NPV'],
+                                marker_color='blue'))
+            
+            fig.update_layout(
+                title="NPV Comparison Across Scenarios",
+                xaxis_title="Scenario",
+                yaxis_title="NPV (Rp Billion)",
+                height=400
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Add scenarios to compare")
 
 # --- STORY & USE CASES ---
 if 'story_title' in txt:
@@ -496,5 +580,5 @@ if 'story_title' in txt:
         st.info(txt['story_insight'])
         st.markdown(txt['story_users'])
         st.write(txt['use_govt'])
-        st.write(txt['use_corp'])
+        st.write(txt['use_developer'])
         st.write(txt['use_analyst'])
