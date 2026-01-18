@@ -2,7 +2,7 @@
 
 **A Professional Portfolio Project by Andriyanto
 
-Welcome to the **Intersection of Economic Theory and Advanced Analytics**. This Streamlit application demonstrates **19+ advanced modules** bridging **Microeconomics**, **Macroeconomics**, and **Econometrics** using modern Data Science techniques (Python, Scipy, Altair, Plotly, and World Bank API).
+Welcome to the **Intersection of Economic Theory and Advanced Analytics**. This Streamlit application demonstrates **20+ advanced modules** bridging **Microeconomics**, **Macroeconomics**, and **Econometrics** using modern Data Science techniques (Python, Scipy, Altair, Plotly, and World Bank API).
 
 ##  Key Features
 
@@ -13,6 +13,7 @@ Welcome to the **Intersection of Economic Theory and Advanced Analytics**. This 
 4.  **Production Optimization (Managerial)**: Cost minimization using **Isoquant/Isocost** tangency and Cobb-Douglas logic.
 5.  **Game Theory Simulator**: Experience the **Prisoner's Dilemma** and Price Wars in an interactive "You vs AI" game.
 6.  **Investment Location Finder**: **Multi-Criteria Decision Analysis (MCDA)** to rank regions based on Labor Cost, Infrastructure, and Market Size.
+7.  **Advanced Elasticity Calculator**: Comprehensive PED, YED, XED, PES analysis with revenue optimization and business strategy recommendations.
 
 ###  Macroeconomics & Policy
 7.  **Macro Growth Models**: Visually simulate the **Solow Growth Model** (Capital Accumulation, Golden Rule).
