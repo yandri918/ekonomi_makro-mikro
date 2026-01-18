@@ -431,6 +431,15 @@ with tab3:
     col1, col2 = st.columns([1, 2])
     
     with col1:
+        # Get baseline values from Tab 1 or use defaults
+        sim_current_gdp = C + I + G + NX
+        sim_inflation = inflation
+        sim_unemployment = unemployment
+        sim_r = r
+        sim_target_inflation = target_inflation
+        sim_min_rate = min_rate
+        sim_max_rate = max_rate
+        
         periods = st.slider(txt['simulation_periods'], 4, 20, 12)
         shock = st.selectbox(txt['shock_type'], 
                             [txt['no_shock'], txt['demand_shock'], txt['supply_shock'], txt['financial_shock']])
@@ -446,12 +455,12 @@ with tab3:
             rate_path = np.zeros(periods)
             
             # Initial values
-            gdp_path[0] = current_gdp
-            inflation_path[0] = inflation
-            unemployment_path[0] = unemployment
-            rate_path[0] = r
+            gdp_path[0] = sim_current_gdp
+            inflation_path[0] = sim_inflation
+            unemployment_path[0] = sim_unemployment
+            rate_path[0] = sim_r
             
-            # Apply shock
+            # Apply shock and dynamics
             for t in range(1, periods):
                 if t == 2:  # Shock hits in period 2
                     if shock == txt['demand_shock']:
@@ -463,10 +472,10 @@ with tab3:
                 
                 # Policy response (Taylor Rule)
                 if t > 2:
-                    inflation_gap = inflation_path[t-1] - target_inflation
-                    output_gap = (gdp_path[t-1] - current_gdp) / current_gdp * 100
-                    rate_path[t] = r + 0.5 * inflation_gap + 0.5 * output_gap
-                    rate_path[t] = np.clip(rate_path[t], min_rate, max_rate)
+                    inflation_gap = inflation_path[t-1] - sim_target_inflation
+                    output_gap = (gdp_path[t-1] - sim_current_gdp) / sim_current_gdp * 100
+                    rate_path[t] = sim_r + 0.5 * inflation_gap + 0.5 * output_gap
+                    rate_path[t] = np.clip(rate_path[t], sim_min_rate, sim_max_rate)
                 
                 # Economic dynamics
                 if t > 0:
@@ -478,7 +487,7 @@ with tab3:
                     
                     unemployment_path[t] = unemployment_path[t-1] - 0.5 * gdp_growth
             
-            st.session_state['simulation'] = {
+            st.session_state['simulation_results'] = {
                 'time': time,
                 'gdp': gdp_path,
                 'inflation': inflation_path,
@@ -487,8 +496,8 @@ with tab3:
             }
     
     with col2:
-        if 'simulation' in st.session_state:
-            sim = st.session_state['simulation']
+        if 'simulation_results' in st.session_state:
+            sim = st.session_state['simulation_results']
             
             fig = make_subplots(rows=2, cols=2,
                                subplot_titles=("GDP Path", "Inflation Path", 
@@ -512,6 +521,8 @@ with tab3:
             fig.update_layout(height=700, showlegend=False)
             
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Click 'Run Dynamic Simulation' to see results")
 
 # ========== TAB 4: SCENARIO COMPARISON ==========
 with tab4:
