@@ -222,11 +222,11 @@ with tab2:
     
     with col1:
         st.markdown(f"#### {txt['volatile_items']}")
-        volatile = edited_df.nlargest(5, 'Price Change (%)')[['Item', 'Price Change (%)']].rename(columns={'Item': txt['item'], 'Price Change (%)': txt['price_change']})
+        volatile = edited_df.nlargest(5, 'Price Change (%)')[[txt['item'], 'Price Change (%)']].rename(columns={'Price Change (%)': txt['price_change']})
         st.dataframe(volatile, use_container_width=True, hide_index=True)
         
         st.markdown(f"#### {txt['stable_items']}")
-        stable = edited_df.nsmallest(5, 'Price Change (%)')[['Item', 'Price Change (%)']].rename(columns={'Item': txt['item'], 'Price Change (%)': txt['price_change']})
+        stable = edited_df.nsmallest(5, 'Price Change (%)')[[txt['item'], 'Price Change (%)']].rename(columns={'Price Change (%)': txt['price_change']})
         st.dataframe(stable, use_container_width=True, hide_index=True)
     
     with col2:
@@ -271,7 +271,7 @@ with tab2:
     - Headline Inflation: {inflation_rate:.2f}%
     - Core Inflation: {core_inflation:.2f}%
     - Main Driver: {category_summary.nlargest(1, 'Contribution').iloc[0][txt['category']]} ({category_summary.nlargest(1, 'Contribution').iloc[0]['Contribution']:.2f}% contribution)
-    - Most Volatile: {edited_df.nlargest(1, 'Price Change (%)').iloc[0]['Item']} (+{edited_df.nlargest(1, 'Price Change (%)').iloc[0]['Price Change (%)']:.1f}%)
+    - Most Volatile: {edited_df.nlargest(1, 'Price Change (%)').iloc[0][txt['item']]} (+{edited_df.nlargest(1, 'Price Change (%)').iloc[0]['Price Change (%)']:.1f}%)
     """)
 
 # ========== TAB 3: TIME SERIES TRACKER ==========
