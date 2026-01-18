@@ -201,13 +201,13 @@ with tab1:
     with col1:
         st.markdown(f"#### {txt['fiscal_policy']}")
         
-        G = st.slider(txt['govt_spending'], 50, 300, 150, 10)
-        T = st.slider(txt['taxes'], 20, 200, 100, 10)
+        G = st.number_input(txt['govt_spending'], min_value=0.0, max_value=10000.0, value=150.0, step=10.0)
+        T = st.number_input(txt['taxes'], min_value=0.0, max_value=10000.0, value=100.0, step=10.0)
         MPC = st.slider(txt['mpc'], 0.1, 0.9, 0.75, 0.05, help=txt['mpc_help'])
         
         st.markdown(f"#### {txt['monetary_policy']}")
         
-        M = st.slider(txt['money_supply'], 100, 1000, 400, 50)
+        M = st.number_input(txt['money_supply'], min_value=0.0, max_value=50000.0, value=400.0, step=50.0)
         P = st.slider(txt['price_level'], 0.5, 3.0, 1.0, 0.1)
         k = st.slider(txt['money_demand_y'], 0.1, 1.0, 0.5, 0.05)
         h = st.slider(txt['money_demand_r'], 10, 200, 100, 10)
