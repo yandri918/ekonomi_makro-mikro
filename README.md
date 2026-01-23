@@ -563,6 +563,6 @@ Need help? Have questions?
 
 [🚀 Live Demo](#) • [📖 Documentation](#modules) • [💼 Portfolio](#about)
 
-**© 2024 Andriyanto. All Rights Reserved.**
+**© 2026 Andriyanto. All Rights Reserved.**
 
 </div>
