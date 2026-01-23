@@ -4,8 +4,9 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime
+from scipy import stats
 
-st.set_page_config(page_title="Economic Indices", page_icon="🔢", layout="wide")
+st.set_page_config(page_title="CPI & Inflation Analysis", page_icon="🔢", layout="wide")
 
 if 'language' not in st.session_state:
     st.session_state['language'] = 'ID'
@@ -13,11 +14,13 @@ lang = st.session_state['language']
 
 T = {
     'EN': {
-        'title': "🔢 Consumer Price Index & Inflation Analyzer",
-        'subtitle': "Professional CPI calculation with detailed inflation analysis and basket composition insights.",
+        'title': "🔢 Advanced CPI & Inflation Analysis",
+        'subtitle': "Professional CPI calculation with advanced statistical analysis, decomposition methods, and scientific insights.",
         'tab1': "🛒 CPI Calculator",
         'tab2': "📊 Inflation Analysis",
         'tab3': "📈 Time Series Tracker",
+        'tab4': "📊 Statistical Analysis",
+        'tab5': "🔬 Inflation Decomposition",
         'cpi_title': "Consumer Price Index (CPI) Calculator",
         'cpi_intro': "Build a realistic **Market Basket** to calculate CPI and analyze inflation patterns.",
         'basket_editor': "Market Basket (Editable)",
@@ -46,20 +49,29 @@ T = {
         'add_period': "Add New Period",
         'period_name': "Period Name",
         'view_trend': "View Inflation Trend",
-        'story_title': "📚 Story & Use Cases",
-        'story_meaning': "**What is this?**\nProfessional CPI calculator used by central banks and statistical agencies to measure inflation and cost of living changes.",
-        'story_insight': "**Key Insight:**\nCPI measures how much more expensive (or cheaper) a basket of goods becomes over time. It's the foundation for monetary policy decisions.",
-        'story_users': "**Who needs this?**",
-        'use_central_bank': "🏦 **Central Banks:** Monitor inflation for interest rate decisions.",
-        'use_govt': "🏛️ **Government:** Adjust minimum wages, pensions, and subsidies.",
-        'use_business': "🏢 **Businesses:** Plan pricing strategies and wage adjustments."
+        # Statistical
+        'stats_title': "Statistical Analysis",
+        'volatility_metrics': "Volatility Metrics",
+        'price_dispersion': "Price Dispersion Analysis",
+        'std_dev': "Standard Deviation",
+        'coef_var': "Coefficient of Variation",
+        'price_range': "Price Range",
+        'iqr': "Interquartile Range",
+        # Decomposition
+        'decomp_title': "Inflation Decomposition",
+        'demand_pull': "Demand-Pull Inflation",
+        'cost_push': "Cost-Push Inflation",
+        'persistent': "Persistent Component",
+        'transitory': "Transitory Component"
     },
     'ID': {
-        'title': "🔢 Analisis Indeks Harga Konsumen & Inflasi",
-        'subtitle': "Perhitungan IHK profesional dengan analisis inflasi detail dan wawasan komposisi keranjang.",
+        'title': "🔢 Analisis IHK & Inflasi Lanjutan",
+        'subtitle': "Perhitungan IHK profesional dengan analisis statistik lanjutan, metode dekomposisi, dan wawasan ilmiah.",
         'tab1': "🛒 Kalkulator IHK",
         'tab2': "📊 Analisis Inflasi",
         'tab3': "📈 Pelacak Time Series",
+        'tab4': "📊 Analisis Statistik",
+        'tab5': "🔬 Dekomposisi Inflasi",
         'cpi_title': "Kalkulator Indeks Harga Konsumen (IHK)",
         'cpi_intro': "Buat **Keranjang Belanja** realistis untuk menghitung IHK dan menganalisis pola inflasi.",
         'basket_editor': "Keranjang Belanja (Dapat Diedit)",
@@ -88,13 +100,20 @@ T = {
         'add_period': "Tambah Periode Baru",
         'period_name': "Nama Periode",
         'view_trend': "Lihat Tren Inflasi",
-        'story_title': "📚 Cerita & Kasus Penggunaan",
-        'story_meaning': "**Apa artinya ini?**\nKalkulator IHK profesional yang digunakan bank sentral dan badan statistik untuk mengukur inflasi dan perubahan biaya hidup.",
-        'story_insight': "**Wawasan Utama:**\nIHK mengukur seberapa mahal (atau murah) keranjang barang menjadi seiring waktu. Ini adalah fondasi untuk keputusan kebijakan moneter.",
-        'story_users': "**Siapa yang butuh ini?**",
-        'use_central_bank': "🏦 **Bank Sentral:** Memantau inflasi untuk keputusan suku bunga.",
-        'use_govt': "🏛️ **Pemerintah:** Menyesuaikan UMR, pensiun, dan subsidi.",
-        'use_business': "🏢 **Bisnis:** Merencanakan strategi harga dan penyesuaian upah."
+        # Statistical
+        'stats_title': "Analisis Statistik",
+        'volatility_metrics': "Metrik Volatilitas",
+        'price_dispersion': "Analisis Dispersi Harga",
+        'std_dev': "Standar Deviasi",
+        'coef_var': "Koefisien Variasi",
+        'price_range': "Rentang Harga",
+        'iqr': "Rentang Interkuartil",
+        # Decomposition
+        'decomp_title': "Dekomposisi Inflasi",
+        'demand_pull': "Inflasi Tarikan Permintaan",
+        'cost_push': "Inflasi Dorongan Biaya",
+        'persistent': "Komponen Persisten",
+        'transitory': "Komponen Sementara"
     }
 }
 
@@ -108,7 +127,7 @@ if 'cpi_history' not in st.session_state:
     st.session_state['cpi_history'] = []
 
 # TABS
-tab1, tab2, tab3 = st.tabs([txt['tab1'], txt['tab2'], txt['tab3']])
+tab1, tab2, tab3, tab4, tab5 = st.tabs([txt['tab1'], txt['tab2'], txt['tab3'], txt['tab4'], txt['tab5']])
 
 # ========== TAB 1: CPI CALCULATOR ==========
 with tab1:
@@ -274,7 +293,7 @@ with tab2:
     - Most Volatile: {edited_df.nlargest(1, 'Price Change (%)').iloc[0][txt['item']]} (+{edited_df.nlargest(1, 'Price Change (%)').iloc[0]['Price Change (%)']:.1f}%)
     """)
 
-# ========== TAB 3: TIME SERIES TRACKER ==========
+# ========== TAB 3: ENHANCED TIME SERIES TRACKER ==========
 with tab3:
     st.markdown(f"### {txt['tracker_title']}")
     
@@ -302,19 +321,35 @@ with tab3:
         if len(st.session_state['cpi_history']) > 0:
             history_df = pd.DataFrame(st.session_state['cpi_history'])
             
+            # Calculate moving averages if enough data
+            if len(history_df) >= 3:
+                history_df['MA_3'] = history_df['Inflation'].rolling(window=3).mean()
+            if len(history_df) >= 6:
+                history_df['MA_6'] = history_df['Inflation'].rolling(window=6).mean()
+            
             fig = make_subplots(rows=2, cols=1,
-                               subplot_titles=("CPI Trend", "Inflation Rate Trend"))
+                               subplot_titles=("CPI Trend", "Inflation Rate Trend with Moving Averages"))
             
             fig.add_trace(go.Scatter(x=history_df['Period'], y=history_df['CPI'], 
-                                    mode='lines+markers', name='CPI', line=dict(color='blue')),
+                                    mode='lines+markers', name='CPI', line=dict(color='blue', width=2)),
                          row=1, col=1)
             
             fig.add_trace(go.Scatter(x=history_df['Period'], y=history_df['Inflation'], 
-                                    mode='lines+markers', name='Headline', line=dict(color='red')),
+                                    mode='lines+markers', name='Headline', line=dict(color='red', width=2)),
                          row=2, col=1)
             fig.add_trace(go.Scatter(x=history_df['Period'], y=history_df['Core Inflation'], 
-                                    mode='lines+markers', name='Core', line=dict(color='green', dash='dash')),
+                                    mode='lines+markers', name='Core', line=dict(color='green', width=2, dash='dash')),
                          row=2, col=1)
+            
+            # Add moving averages if available
+            if 'MA_3' in history_df.columns:
+                fig.add_trace(go.Scatter(x=history_df['Period'], y=history_df['MA_3'], 
+                                        mode='lines', name='MA(3)', line=dict(color='orange', width=1, dash='dot')),
+                             row=2, col=1)
+            if 'MA_6' in history_df.columns:
+                fig.add_trace(go.Scatter(x=history_df['Period'], y=history_df['MA_6'], 
+                                        mode='lines', name='MA(6)', line=dict(color='purple', width=1, dash='dot')),
+                             row=2, col=1)
             
             fig.update_xaxes(title_text="Period", row=2, col=1)
             fig.update_yaxes(title_text="CPI", row=1, col=1)
@@ -323,17 +358,214 @@ with tab3:
             
             st.plotly_chart(fig, use_container_width=True)
             
+            # Trend analysis
+            if len(history_df) >= 3:
+                st.markdown("### 📊 Trend Analysis")
+                
+                # Linear regression
+                x = np.arange(len(history_df))
+                y = history_df['Inflation'].values
+                slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+                
+                col_t1, col_t2, col_t3 = st.columns(3)
+                col_t1.metric("Trend Slope", f"{slope:.3f}%/period")
+                col_t2.metric("R² (Fit Quality)", f"{r_value**2:.3f}")
+                col_t3.metric("P-value", f"{p_value:.4f}")
+                
+                if slope > 0.1:
+                    st.warning("⚠️ **Upward Trend**: Inflation is increasing over time")
+                elif slope < -0.1:
+                    st.success("✅ **Downward Trend**: Inflation is decreasing over time")
+                else:
+                    st.info("➡️ **Stable Trend**: Inflation is relatively stable")
+            
             st.dataframe(history_df, use_container_width=True, hide_index=True)
         else:
             st.info("No historical data yet. Add periods to track CPI over time.")
 
-# --- STORY & USE CASES ---
-if 'story_title' in txt:
-    st.divider()
-    with st.expander(txt['story_title']):
-        st.markdown(txt['story_meaning'])
-        st.info(txt['story_insight'])
-        st.markdown(txt['story_users'])
-        st.write(txt['use_central_bank'])
-        st.write(txt['use_govt'])
-        st.write(txt['use_business'])
+# ========== TAB 4: STATISTICAL ANALYSIS ==========
+with tab4:
+    st.markdown(f"### {txt['stats_title']}")
+    
+    # Volatility Metrics
+    st.markdown(f"#### {txt['volatility_metrics']}")
+    
+    price_changes = edited_df['Price Change (%)'].values
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    std_dev = np.std(price_changes)
+    mean_change = np.mean(price_changes)
+    coef_var = (std_dev / abs(mean_change)) * 100 if mean_change != 0 else 0
+    price_range = np.max(price_changes) - np.min(price_changes)
+    q75, q25 = np.percentile(price_changes, [75, 25])
+    iqr = q75 - q25
+    
+    col1.metric(txt['std_dev'], f"{std_dev:.2f}%")
+    col2.metric(txt['coef_var'], f"{coef_var:.1f}%")
+    col3.metric(txt['price_range'], f"{price_range:.2f}%")
+    col4.metric(txt['iqr'], f"{iqr:.2f}%")
+    
+    # Price Dispersion Analysis
+    st.markdown(f"#### {txt['price_dispersion']}")
+    
+    fig_box = go.Figure()
+    
+    for category in edited_df[txt['category']].unique():
+        cat_data = edited_df[edited_df[txt['category']] == category]['Price Change (%)']
+        fig_box.add_trace(go.Box(y=cat_data, name=category))
+    
+    fig_box.update_layout(
+        title="Price Change Distribution by Category",
+        yaxis_title="Price Change (%)",
+        height=400
+    )
+    
+    st.plotly_chart(fig_box, use_container_width=True)
+    
+    # Distribution Analysis
+    st.markdown("#### Distribution Analysis")
+    
+    fig_hist = go.Figure()
+    fig_hist.add_trace(go.Histogram(x=price_changes, nbinsx=15, name='Price Changes',
+                                    marker_color='lightblue'))
+    fig_hist.update_layout(
+        title="Distribution of Price Changes",
+        xaxis_title="Price Change (%)",
+        yaxis_title="Frequency",
+        height=300
+    )
+    st.plotly_chart(fig_hist, use_container_width=True)
+    
+    # Statistical Tests
+    st.markdown("#### Statistical Insights")
+    
+    # Normality test
+    _, p_norm = stats.normaltest(price_changes)
+    
+    col_s1, col_s2 = st.columns(2)
+    
+    with col_s1:
+        st.metric("Skewness", f"{stats.skew(price_changes):.3f}",
+                 help="Measures asymmetry. 0 = symmetric, >0 = right-skewed, <0 = left-skewed")
+        st.metric("Kurtosis", f"{stats.kurtosis(price_changes):.3f}",
+                 help="Measures tail heaviness. 0 = normal, >0 = heavy tails, <0 = light tails")
+    
+    with col_s2:
+        if p_norm < 0.05:
+            st.warning("⚠️ **Non-Normal Distribution**: Price changes are not normally distributed")
+        else:
+            st.success("✅ **Normal Distribution**: Price changes follow normal distribution")
+        
+        if std_dev > 5:
+            st.error("🔴 **High Volatility**: Significant price dispersion detected")
+        elif std_dev > 2:
+            st.warning("🟡 **Moderate Volatility**: Some price variation present")
+        else:
+            st.success("🟢 **Low Volatility**: Prices are relatively stable")
+
+# ========== TAB 5: INFLATION DECOMPOSITION ==========
+with tab5:
+    st.markdown(f"### {txt['decomp_title']}")
+    
+    # Categorize inflation sources
+    demand_categories = ['Perumahan', 'Pendidikan', 'Komunikasi']
+    cost_categories = ['Pangan', 'Transportasi', 'Kesehatan']
+    
+    demand_df = edited_df[edited_df[txt['category']].isin(demand_categories)]
+    cost_df = edited_df[edited_df[txt['category']].isin(cost_categories)]
+    
+    demand_base = demand_df['Weighted Base'].sum()
+    demand_curr = demand_df['Weighted Current'].sum()
+    demand_inflation = ((demand_curr - demand_base) / demand_base) * 100 if demand_base > 0 else 0
+    
+    cost_base = cost_df['Weighted Base'].sum()
+    cost_curr = cost_df['Weighted Current'].sum()
+    cost_inflation = ((cost_curr - cost_base) / cost_base) * 100 if cost_base > 0 else 0
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric(txt['demand_pull'], f"{demand_inflation:.2f}%",
+                 help="Inflation from demand-side factors (housing, education, services)")
+        st.metric(txt['cost_push'], f"{cost_inflation:.2f}%",
+                 help="Inflation from supply-side factors (food, energy, health)")
+    
+    with col2:
+        # Waterfall chart
+        fig_waterfall = go.Figure(go.Waterfall(
+            name="Inflation Decomposition",
+            orientation="v",
+            measure=["relative", "relative", "total"],
+            x=["Demand-Pull", "Cost-Push", "Total Inflation"],
+            y=[demand_inflation, cost_inflation, inflation_rate],
+            connector={"line": {"color": "rgb(63, 63, 63)"}},
+        ))
+        
+        fig_waterfall.update_layout(
+            title="Inflation Decomposition Waterfall",
+            height=300
+        )
+        st.plotly_chart(fig_waterfall, use_container_width=True)
+    
+    # Persistent vs Transitory
+    st.markdown("### Persistent vs Transitory Components")
+    
+    # Items with high volatility are considered transitory
+    volatility_threshold = std_dev
+    persistent_items = edited_df[edited_df['Price Change (%)'].abs() <= volatility_threshold]
+    transitory_items = edited_df[edited_df['Price Change (%)'].abs() > volatility_threshold]
+    
+    persistent_base = persistent_items['Weighted Base'].sum()
+    persistent_curr = persistent_items['Weighted Current'].sum()
+    persistent_inflation = ((persistent_curr - persistent_base) / persistent_base) * 100 if persistent_base > 0 else 0
+    
+    transitory_base = transitory_items['Weighted Base'].sum()
+    transitory_curr = transitory_items['Weighted Current'].sum()
+    transitory_inflation = ((transitory_curr - transitory_base) / transitory_base) * 100 if transitory_base > 0 else 0
+    
+    col_p1, col_p2 = st.columns(2)
+    col_p1.metric(txt['persistent'], f"{persistent_inflation:.2f}%",
+                 help="Stable, long-term inflation component")
+    col_p2.metric(txt['transitory'], f"{transitory_inflation:.2f}%",
+                 help="Temporary, volatile inflation component")
+    
+    # Insights
+    st.markdown("### 🔬 Scientific Insights")
+    
+    if abs(demand_inflation) > abs(cost_inflation):
+        st.info("📊 **Demand-Driven Inflation**: Inflation is primarily driven by demand-side factors. Monetary policy may be effective.")
+    else:
+        st.warning("📊 **Cost-Driven Inflation**: Inflation is primarily driven by supply-side factors. Supply-side policies may be needed.")
+    
+    if abs(transitory_inflation) > abs(persistent_inflation):
+        st.success("✅ **Transitory Inflation**: Most inflation is temporary and may self-correct.")
+    else:
+        st.error("⚠️ **Persistent Inflation**: Inflation has become entrenched and may require policy intervention.")
+    
+    # Export data
+    st.markdown("---")
+    st.markdown("### 📥 Export Analysis")
+    
+    export_data = {
+        'Metric': ['Headline Inflation', 'Core Inflation', 'Demand-Pull', 'Cost-Push', 'Persistent', 'Transitory', 'Volatility (Std Dev)'],
+        'Value (%)': [inflation_rate, core_inflation, demand_inflation, cost_inflation, persistent_inflation, transitory_inflation, std_dev]
+    }
+    
+    df_export = pd.DataFrame(export_data)
+    csv = df_export.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Download Analysis (CSV)",
+        data=csv,
+        file_name='cpi_inflation_analysis.csv',
+        mime='text/csv',
+    )
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style='text-align: center; color: gray; font-size: 12px;'>
+    <p>Advanced CPI & Inflation Analysis | Scientific Methods</p>
+    <p>🔢 Built for Central Banks, Statistical Agencies, and Economic Research</p>
+</div>
+""", unsafe_allow_html=True)
