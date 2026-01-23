@@ -746,7 +746,7 @@ with tab3:
 # ==================== TAB 4: ELASTICITY CALCULATOR ====================
 with tab4:
     st.markdown(f"### {txt['el_title']}")
-    st.markdown(txt['el_intro']})
+    st.markdown(txt['el_intro'])
     
     col_e1, col_e2 = st.columns(2)
     
