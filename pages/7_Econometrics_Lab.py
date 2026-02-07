@@ -3,25 +3,29 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 import statsmodels.api as sm
-from statsmodels.stats.diagnostic import het_breuschpagan, acorr_ljungbox
+from statsmodels.stats.diagnostic import het_breuschpagan, het_white, acorr_ljungbox, linear_reset
 from statsmodels.stats.stattools import durbin_watson
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy import stats
 import io
 
-st.set_page_config(page_title="Econometrics Lab", page_icon="🧪", layout="wide")
+st.set_page_config(page_title="Professional Econometrics Lab", page_icon="🧪", layout="wide")
 
 if 'language' not in st.session_state:
     st.session_state['language'] = 'ID'
 lang = st.session_state['language']
 
+# Translation dictionary
 T = {
     'EN': {
         'title': "🧪 Professional Econometrics Lab",
-        'subtitle': "Comprehensive OLS regression analysis with diagnostic tests and model validation.",
+        'subtitle': "Comprehensive OLS regression analysis with diagnostic tests, robust standard errors, and influence diagnostics.",
         'tab1': "📊 Data & Regression",
         'tab2': "🔍 Diagnostics",
         'tab3': "📈 Residual Analysis",
+        'tab4': "🎯 Influence & Outliers",
         'data_source': "Data Source",
         'upload_data': "Upload CSV/Excel File",
         'generate_data': "Generate Synthetic Data",
@@ -42,36 +46,20 @@ T = {
         'regression_results': "Regression Results",
         'coefficients': "Estimated Coefficients",
         'model_fit': "Model Fit Statistics",
-        'r_squared': "R-squared",
-        'adj_r_squared': "Adjusted R-squared",
-        'f_statistic': "F-statistic",
-        'prob_f': "Prob (F-statistic)",
-        'aic': "AIC",
-        'bic': "BIC",
-        'diagnostic_tests': "Diagnostic Tests",
-        'normality': "Normality Test (Jarque-Bera)",
-        'heteroskedasticity': "Heteroskedasticity (Breusch-Pagan)",
-        'autocorrelation': "Autocorrelation (Durbin-Watson)",
-        'multicollinearity': "Multicollinearity (VIF)",
+        'use_robust': "Use Robust Standard Errors",
+        'prediction': "Prediction & Confidence Intervals",
+        'diagnostic_dashboard': "Diagnostic Dashboard",
+        'diagnostic_tests': "Detailed Diagnostic Tests",
         'residual_plots': "Residual Analysis Plots",
-        'fitted_vs_residuals': "Fitted vs Residuals",
-        'qq_plot': "Q-Q Plot (Normality)",
-        'histogram': "Residuals Histogram",
-        'interpretation': "Interpretation Guide",
-        'story_title': "📚 Story & Use Cases",
-        'story_meaning': "**What is this?**\nProfessional econometrics tool for regression analysis, matching capabilities of Stata/EViews/R.",
-        'story_insight': "**Key Insight:**\nOLS is the foundation of econometrics. Understanding diagnostics is crucial for valid inference.",
-        'story_users': "**Who needs this?**",
-        'use_researcher': "🎓 **Researchers:** Empirical analysis and hypothesis testing.",
-        'use_analyst': "📊 **Data Analysts:** Predictive modeling and forecasting.",
-        'use_student': "📚 **Students:** Learn econometrics with real tools."
+        'influence_plots': "Influence Diagnostics",
     },
     'ID': {
         'title': "🧪 Lab Ekonometrika Profesional",
-        'subtitle': "Analisis regresi OLS komprehensif dengan tes diagnostik dan validasi model.",
+        'subtitle': "Analisis regresi OLS komprehensif dengan tes diagnostik, robust standard errors, dan diagnostik pengaruh.",
         'tab1': "📊 Data & Regresi",
         'tab2': "🔍 Diagnostik",
         'tab3': "📈 Analisis Residual",
+        'tab4': "🎯 Pengaruh & Outlier",
         'data_source': "Sumber Data",
         'upload_data': "Upload File CSV/Excel",
         'generate_data': "Generate Data Sintetis",
@@ -92,34 +80,18 @@ T = {
         'regression_results': "Hasil Regresi",
         'coefficients': "Koefisien Terestimasi",
         'model_fit': "Statistik Kesesuaian Model",
-        'r_squared': "R-squared",
-        'adj_r_squared': "Adjusted R-squared",
-        'f_statistic': "F-statistik",
-        'prob_f': "Prob (F-statistik)",
-        'aic': "AIC",
-        'bic': "BIC",
-        'diagnostic_tests': "Tes Diagnostik",
-        'normality': "Tes Normalitas (Jarque-Bera)",
-        'heteroskedasticity': "Heteroskedastisitas (Breusch-Pagan)",
-        'autocorrelation': "Autokorelasi (Durbin-Watson)",
-        'multicollinearity': "Multikolinearitas (VIF)",
+        'use_robust': "Gunakan Robust Standard Errors",
+        'prediction': "Prediksi & Interval Kepercayaan",
+        'diagnostic_dashboard': "Dashboard Diagnostik",
+        'diagnostic_tests': "Tes Diagnostik Detail",
         'residual_plots': "Plot Analisis Residual",
-        'fitted_vs_residuals': "Fitted vs Residual",
-        'qq_plot': "Q-Q Plot (Normalitas)",
-        'histogram': "Histogram Residual",
-        'interpretation': "Panduan Interpretasi",
-        'story_title': "📚 Cerita & Kasus Penggunaan",
-        'story_meaning': "**Apa artinya ini?**\nAlat ekonometrika profesional untuk analisis regresi, setara dengan Stata/EViews/R.",
-        'story_insight': "**Wawasan Utama:**\nOLS adalah fondasi ekonometrika. Memahami diagnostik sangat penting untuk inferensi yang valid.",
-        'story_users': "**Siapa yang butuh ini?**",
-        'use_researcher': "🎓 **Peneliti:** Analisis empiris dan pengujian hipotesis.",
-        'use_analyst': "📊 **Analis Data:** Pemodelan prediktif dan peramalan.",
-        'use_student': "📚 **Mahasiswa:** Belajar ekonometrika dengan alat nyata."
+        'influence_plots': "Diagnostik Pengaruh",
     }
 }
 
 txt = T[lang]
 
+# Header
 st.title(txt['title'])
 st.markdown(txt['subtitle'])
 
@@ -153,7 +125,6 @@ with st.sidebar:
             np.random.seed(np.random.randint(0, 10000))
             
             if model_type == txt['demand']:
-                # Q = 100 - 2*P + 0.5*Income + e
                 P = np.random.uniform(10, 50, n_samples)
                 Income = np.random.uniform(1000, 5000, n_samples)
                 error = np.random.normal(0, noise_level, n_samples)
@@ -161,7 +132,6 @@ with st.sidebar:
                 df = pd.DataFrame({'Quantity': Q, 'Price': P, 'Income': Income})
                 
             elif model_type == txt['consumption']:
-                # C = 50 + 0.8*Y - 0.02*Interest + e
                 Y = np.random.uniform(1000, 10000, n_samples)
                 Interest = np.random.uniform(2, 10, n_samples)
                 error = np.random.normal(0, noise_level*10, n_samples)
@@ -169,7 +139,6 @@ with st.sidebar:
                 df = pd.DataFrame({'Consumption': C, 'Income': Y, 'Interest_Rate': Interest})
                 
             elif model_type == txt['phillips']:
-                # Inflation = 5 - 0.5*Unemployment + 0.3*Money_Growth + e
                 Unemp = np.random.uniform(3, 12, n_samples)
                 Money = np.random.uniform(0, 10, n_samples)
                 error = np.random.normal(0, noise_level*0.5, n_samples)
@@ -177,7 +146,6 @@ with st.sidebar:
                 df = pd.DataFrame({'Inflation': Inf, 'Unemployment': Unemp, 'Money_Growth': Money})
                 
             else:  # Production function
-                # Q = 10 + 0.5*K + 0.3*L + e (Cobb-Douglas linearized)
                 K = np.random.uniform(10, 100, n_samples)
                 L = np.random.uniform(10, 100, n_samples)
                 error = np.random.normal(0, noise_level, n_samples)
@@ -189,7 +157,7 @@ with st.sidebar:
             st.rerun()
 
 # TABS
-tab1, tab2, tab3 = st.tabs([txt['tab1'], txt['tab2'], txt['tab3']])
+tab1, tab2, tab3, tab4 = st.tabs([txt['tab1'], txt['tab2'], txt['tab3'], txt['tab4']])
 
 # ========== TAB 1: DATA & REGRESSION ==========
 with tab1:
@@ -209,6 +177,10 @@ with tab1:
             x_vars = st.multiselect(txt['independent_vars'], 
                                     [col for col in edited_df.columns if col != y_var])
         
+        # Robust SE option
+        use_robust = st.checkbox(txt['use_robust'], value=False, 
+                                 help="Use White heteroskedasticity-consistent standard errors (HC3)")
+        
         if st.button(txt['run_regression'], type='primary') and len(x_vars) > 0:
             # Prepare data
             Y = edited_df[y_var].dropna()
@@ -225,85 +197,199 @@ with tab1:
             # Fit model
             model = sm.OLS(Y, X_const).fit()
             
+            # Robust covariance if requested
+            if use_robust:
+                model_robust = model.get_robustcov_results(cov_type='HC3')
+            else:
+                model_robust = None
+            
             # Store in session state
             st.session_state['model'] = model
+            st.session_state['model_robust'] = model_robust
             st.session_state['Y'] = Y
             st.session_state['X'] = X
             st.session_state['y_var'] = y_var
             st.session_state['x_vars'] = x_vars
+            st.session_state['use_robust'] = use_robust
             
             # Display results
             st.markdown(f"### {txt['regression_results']}")
+            
+            # Choose which model to display
+            display_model = model_robust if use_robust else model
             
             col1, col2 = st.columns([1, 1])
             
             with col1:
                 st.markdown(f"#### {txt['coefficients']}")
-                coef_df = pd.DataFrame({
-                    'Variable': model.params.index,
-                    'Coefficient': model.params.values,
-                    'Std Error': model.bse.values,
-                    't-statistic': model.tvalues.values,
-                    'P-value': model.pvalues.values
-                })
-                st.dataframe(coef_df, use_container_width=True, hide_index=True)
                 
-                # Significance stars
+                # Build coefficient table
+                coef_df = pd.DataFrame({
+                    'Variable': display_model.params.index,
+                    'Coefficient': display_model.params.values,
+                    'Std Error': display_model.bse.values,
+                    't-statistic': display_model.tvalues.values,
+                    'P-value': display_model.pvalues.values
+                })
+                
+                # Add significance stars
+                def add_stars(p):
+                    if p < 0.01:
+                        return '***'
+                    elif p < 0.05:
+                        return '**'
+                    elif p < 0.1:
+                        return '*'
+                    return ''
+                
+                coef_df['Sig'] = coef_df['P-value'].apply(add_stars)
+                
+                st.dataframe(coef_df.style.format({
+                    'Coefficient': '{:.4f}',
+                    'Std Error': '{:.4f}',
+                    't-statistic': '{:.4f}',
+                    'P-value': '{:.4f}'
+                }), use_container_width=True, hide_index=True)
+                
                 st.caption("*** p<0.01, ** p<0.05, * p<0.1")
+                
+                if use_robust:
+                    st.info("✅ Using White robust standard errors (HC3)")
             
             with col2:
                 st.markdown(f"#### {txt['model_fit']}")
                 
                 m1, m2 = st.columns(2)
-                m1.metric(txt['r_squared'], f"{model.rsquared:.4f}")
-                m2.metric(txt['adj_r_squared'], f"{model.rsquared_adj:.4f}")
+                m1.metric("R²", f"{model.rsquared:.4f}",
+                         help="Proportion of variance explained by the model")
+                m2.metric("Adj R²", f"{model.rsquared_adj:.4f}",
+                         help="R² adjusted for number of predictors")
                 
                 m3, m4 = st.columns(2)
-                m3.metric(txt['f_statistic'], f"{model.fvalue:.2f}")
-                m4.metric(txt['prob_f'], f"{model.f_pvalue:.4f}")
+                m3.metric("F-statistic", f"{model.fvalue:.2f}",
+                         help="Test if all coefficients are zero")
+                m4.metric("Prob (F)", f"{model.f_pvalue:.4f}",
+                         help="P-value for F-test")
                 
                 m5, m6 = st.columns(2)
-                m5.metric(txt['aic'], f"{model.aic:.2f}")
-                m6.metric(txt['bic'], f"{model.bic:.2f}")
+                m5.metric("AIC", f"{model.aic:.2f}",
+                         help="Akaike Information Criterion (lower is better)")
+                m6.metric("BIC", f"{model.bic:.2f}",
+                         help="Bayesian Information Criterion (lower is better)")
+                
+                m7, m8 = st.columns(2)
+                m7.metric("N", f"{int(model.nobs)}",
+                         help="Number of observations")
+                m8.metric("Df Residual", f"{int(model.df_resid)}",
+                         help="Degrees of freedom for residuals")
             
             # Full summary
             with st.expander("📋 Full Regression Output"):
-                st.text(model.summary())
+                if use_robust:
+                    st.text(model_robust.summary())
+                else:
+                    st.text(model.summary())
             
-            # Scatter plot with regression line (for single X)
+            # Prediction & Confidence Intervals
+            st.markdown(f"### {txt['prediction']}")
+            
+            # Get predictions with intervals
+            predictions = model.get_prediction(X_const)
+            pred_summary = predictions.summary_frame(alpha=0.05)
+            
+            # Visualization for single X
             if len(x_vars) == 1:
-                st.markdown("### Visualization")
-                
                 fig = go.Figure()
                 
-                # Scatter
+                # Sort by X for clean lines
+                sorted_idx = X[x_vars[0]].argsort()
+                x_sorted = X[x_vars[0]].iloc[sorted_idx]
+                y_sorted = Y.iloc[sorted_idx]
+                pred_sorted = pred_summary.iloc[sorted_idx]
+                
+                # Confidence band (for mean)
+                fig.add_trace(go.Scatter(
+                    x=x_sorted,
+                    y=pred_sorted['mean_ci_upper'],
+                    mode='lines',
+                    name='95% CI (Mean)',
+                    line=dict(width=0),
+                    showlegend=False
+                ))
+                
+                fig.add_trace(go.Scatter(
+                    x=x_sorted,
+                    y=pred_sorted['mean_ci_lower'],
+                    mode='lines',
+                    name='95% CI (Mean)',
+                    fill='tonexty',
+                    fillcolor='rgba(0,100,250,0.2)',
+                    line=dict(width=0)
+                ))
+                
+                # Prediction band (for individual obs)
+                fig.add_trace(go.Scatter(
+                    x=x_sorted,
+                    y=pred_sorted['obs_ci_upper'],
+                    mode='lines',
+                    name='95% PI (Individual)',
+                    line=dict(width=1, dash='dash', color='lightblue'),
+                    showlegend=True
+                ))
+                
+                fig.add_trace(go.Scatter(
+                    x=x_sorted,
+                    y=pred_sorted['obs_ci_lower'],
+                    mode='lines',
+                    name='95% PI (Individual)',
+                    line=dict(width=1, dash='dash', color='lightblue'),
+                    showlegend=False
+                ))
+                
+                # Actual data
                 fig.add_trace(go.Scatter(
                     x=X[x_vars[0]],
                     y=Y,
                     mode='markers',
-                    name='Actual',
-                    marker=dict(size=8, opacity=0.6)
+                    name='Actual Data',
+                    marker=dict(size=8, opacity=0.6, color='darkblue')
                 ))
                 
-                # Regression line
-                y_pred = model.predict(X_const)
-                sorted_idx = X[x_vars[0]].argsort()
+                # Fitted line
                 fig.add_trace(go.Scatter(
-                    x=X[x_vars[0]].iloc[sorted_idx],
-                    y=y_pred.iloc[sorted_idx],
+                    x=x_sorted,
+                    y=pred_sorted['mean'],
                     mode='lines',
-                    name='Fitted',
+                    name='Fitted Values',
                     line=dict(color='red', width=3)
                 ))
                 
                 fig.update_layout(
-                    title=f"{y_var} vs {x_vars[0]}",
+                    title=f"{y_var} vs {x_vars[0]} with Confidence & Prediction Intervals",
                     xaxis_title=x_vars[0],
                     yaxis_title=y_var,
-                    height=500
+                    height=500,
+                    hovermode='x unified'
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
+                
+                st.info("""
+                **📊 Interpretation:**
+                - **Blue shaded area:** 95% Confidence Interval for the **mean** prediction
+                - **Dashed lines:** 95% Prediction Interval for **individual** observations
+                - Prediction intervals are wider because they account for individual variation
+                """)
+            
+            else:
+                st.info("Prediction intervals visualization available for single independent variable models.")
+                
+                # Show prediction table for first 10 observations
+                st.markdown("**Sample Predictions:**")
+                pred_display = pred_summary[['mean', 'mean_se', 'mean_ci_lower', 'mean_ci_upper']].head(10)
+                pred_display.columns = ['Predicted', 'SE', '95% CI Lower', '95% CI Upper']
+                st.dataframe(pred_display.style.format('{:.4f}'), use_container_width=True)
+    
     else:
         st.info("Please upload data or generate synthetic data from the sidebar.")
 
@@ -313,95 +399,380 @@ with tab2:
         model = st.session_state['model']
         Y = st.session_state['Y']
         X = st.session_state['X']
-        
-        st.markdown(f"### {txt['diagnostic_tests']}")
+        use_robust = st.session_state.get('use_robust', False)
         
         residuals = model.resid
+        X_const = sm.add_constant(X)
         
-        col1, col2 = st.columns(2)
+        # DIAGNOSTIC DASHBOARD
+        st.markdown(f"### {txt['diagnostic_dashboard']}")
+        
+        # Run all tests
+        tests_passed = 0
+        tests_total = 0
+        
+        # 1. Normality (Jarque-Bera)
+        jb_stat, jb_pvalue = stats.jarque_bera(residuals)
+        normality_pass = jb_pvalue > 0.05
+        tests_total += 1
+        if normality_pass:
+            tests_passed += 1
+        
+        # 2. Heteroskedasticity (Breusch-Pagan)
+        try:
+            bp_stat, bp_pvalue, _, _ = het_breuschpagan(residuals, X_const)
+            bp_pass = bp_pvalue > 0.05
+            bp_available = True
+        except:
+            bp_pass = None
+            bp_available = False
+        tests_total += 1
+        if bp_pass:
+            tests_passed += 1
+        
+        # 3. Heteroskedasticity (White)
+        try:
+            white_stat, white_pvalue, _, _ = het_white(residuals, X_const)
+            white_pass = white_pvalue > 0.05
+            white_available = True
+        except:
+            white_pass = None
+            white_available = False
+        tests_total += 1
+        if white_pass:
+            tests_passed += 1
+        
+        # 4. Autocorrelation (Durbin-Watson)
+        dw_stat = durbin_watson(residuals)
+        dw_pass = 1.5 < dw_stat < 2.5
+        tests_total += 1
+        if dw_pass:
+            tests_passed += 1
+        
+        # 5. Autocorrelation (Ljung-Box)
+        try:
+            lb_test = acorr_ljungbox(residuals, lags=min(10, len(residuals)//5), return_df=True)
+            lb_pass = (lb_test['lb_pvalue'] > 0.05).all()
+            lb_available = True
+        except:
+            lb_pass = None
+            lb_available = False
+        tests_total += 1
+        if lb_pass:
+            tests_passed += 1
+        
+        # 6. Specification (RESET)
+        try:
+            reset_stat, reset_pvalue = linear_reset(model, power=2, use_f=True)
+            reset_pass = reset_pvalue > 0.05
+            reset_available = True
+        except:
+            reset_pass = None
+            reset_available = False
+        tests_total += 1
+        if reset_pass:
+            tests_passed += 1
+        
+        # 7. Multicollinearity (VIF)
+        if len(X.columns) > 1:
+            vif_data = pd.DataFrame()
+            vif_data["Variable"] = X.columns
+            vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(len(X.columns))]
+            vif_pass = (vif_data["VIF"] < 10).all()
+            vif_available = True
+        else:
+            vif_pass = None
+            vif_available = False
+        tests_total += 1
+        if vif_pass:
+            tests_passed += 1
+        
+        # Dashboard summary
+        if tests_passed == tests_total:
+            status_color = "green"
+            status_icon = "✅"
+            status_text = "EXCELLENT"
+        elif tests_passed >= tests_total * 0.7:
+            status_color = "orange"
+            status_icon = "⚠️"
+            status_text = "CAUTION"
+        else:
+            status_color = "red"
+            status_icon = "🚨"
+            status_text = "WARNING"
+        
+        st.markdown(f"""
+        <div style='background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;'>
+            <h3 style='color: white; margin: 0;'>{status_icon} Overall Status: {status_text}</h3>
+            <p style='color: white; margin: 0.5rem 0 0 0; font-size: 1.1rem;'>
+                <b>{tests_passed}/{tests_total}</b> diagnostic tests passed
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Quick summary cards
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            # Normality test
-            st.markdown(f"#### {txt['normality']}")
-            jb_stat, jb_pvalue = stats.jarque_bera(residuals)
-            
-            if jb_pvalue > 0.05:
-                st.success(f"✅ Residuals are normally distributed (p={jb_pvalue:.4f})")
+            if normality_pass:
+                col1.success(f"✅ **Normality**\np={jb_pvalue:.4f}")
             else:
-                st.warning(f"⚠️ Residuals may not be normal (p={jb_pvalue:.4f})")
-            
-            st.caption(f"JB Statistic: {jb_stat:.4f}")
-            
-            # Heteroskedasticity test
-            st.markdown(f"#### {txt['heteroskedasticity']}")
-            try:
-                X_const = sm.add_constant(X)
-                bp_stat, bp_pvalue, _, _ = het_breuschpagan(residuals, X_const)
-                
-                if bp_pvalue > 0.05:
-                    st.success(f"✅ Homoskedastic (p={bp_pvalue:.4f})")
-                else:
-                    st.warning(f"⚠️ Heteroskedasticity detected (p={bp_pvalue:.4f})")
-                
-                st.caption(f"BP Statistic: {bp_stat:.4f}")
-            except:
-                st.info("Could not perform Breusch-Pagan test")
+                col1.warning(f"⚠️ **Normality**\np={jb_pvalue:.4f}")
         
         with col2:
-            # Autocorrelation test
-            st.markdown(f"#### {txt['autocorrelation']}")
-            dw_stat = durbin_watson(residuals)
-            
-            if 1.5 < dw_stat < 2.5:
-                st.success(f"✅ No autocorrelation (DW={dw_stat:.4f})")
-            else:
-                st.warning(f"⚠️ Possible autocorrelation (DW={dw_stat:.4f})")
-            
-            st.caption("DW ≈ 2 indicates no autocorrelation")
-            
-            # Multicollinearity (VIF)
-            st.markdown(f"#### {txt['multicollinearity']}")
-            if len(X.columns) > 1:
-                from statsmodels.stats.outliers_influence import variance_inflation_factor
-                
-                vif_data = pd.DataFrame()
-                vif_data["Variable"] = X.columns
-                vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(len(X.columns))]
-                
-                st.dataframe(vif_data, use_container_width=True, hide_index=True)
-                
-                if (vif_data["VIF"] > 10).any():
-                    st.warning("⚠️ High multicollinearity detected (VIF > 10)")
+            if bp_available:
+                if bp_pass:
+                    col2.success(f"✅ **Homoskedasticity**\n(BP: p={bp_pvalue:.4f})")
                 else:
-                    st.success("✅ No severe multicollinearity (VIF < 10)")
+                    col2.warning(f"⚠️ **Heteroskedasticity**\n(BP: p={bp_pvalue:.4f})")
             else:
-                st.info("VIF requires multiple independent variables")
+                col2.info("BP test unavailable")
         
-        # Interpretation guide
-        with st.expander(txt['interpretation']):
-            st.markdown("""
-            **Diagnostic Tests Interpretation:**
+        with col3:
+            if dw_pass:
+                col3.success(f"✅ **No Autocorr**\nDW={dw_stat:.4f}")
+            else:
+                col3.warning(f"⚠️ **Autocorrelation**\nDW={dw_stat:.4f}")
+        
+        with col4:
+            if vif_available:
+                if vif_pass:
+                    col4.success(f"✅ **No Multicollin**\nMax VIF={vif_data['VIF'].max():.2f}")
+                else:
+                    col4.warning(f"⚠️ **Multicollinearity**\nMax VIF={vif_data['VIF'].max():.2f}")
+            else:
+                col4.info("VIF: Single X")
+        
+        st.divider()
+        
+        # DETAILED DIAGNOSTIC TESTS
+        st.markdown(f"### {txt['diagnostic_tests']}")
+        
+        # Normality Tests
+        with st.expander("📊 **Normality Tests**", expanded=False):
+            col1, col2 = st.columns(2)
             
-            1. **Normality (Jarque-Bera)**:
-               - H0: Residuals are normally distributed
-               - If p > 0.05: Accept H0 (good)
-               - If p < 0.05: Reject H0 (residuals not normal)
+            with col1:
+                st.markdown("#### Jarque-Bera Test")
+                st.metric("JB Statistic", f"{jb_stat:.4f}")
+                st.metric("P-value", f"{jb_pvalue:.4f}")
+                
+                if jb_pvalue > 0.05:
+                    st.success("✅ Residuals are normally distributed")
+                else:
+                    st.warning("⚠️ Residuals may not be normal")
+                
+                st.caption("""
+                **H₀:** Residuals are normally distributed  
+                **Decision:** Reject H₀ if p < 0.05
+                """)
             
-            2. **Heteroskedasticity (Breusch-Pagan)**:
-               - H0: Homoskedasticity (constant variance)
-               - If p > 0.05: Accept H0 (good)
-               - If p < 0.05: Heteroskedasticity present
+            with col2:
+                st.markdown("#### What does this mean?")
+                st.info("""
+                **Normality** is required for:
+                - Valid t-tests and F-tests
+                - Accurate confidence intervals
+                
+                **If test fails:**
+                - Check for outliers
+                - Try transforming Y (log, sqrt)
+                - Use robust standard errors
+                - Bootstrap confidence intervals
+                
+                **Note:** With large samples (n>100), slight non-normality is often okay due to Central Limit Theorem.
+                """)
+        
+        # Heteroskedasticity Tests
+        with st.expander("📈 **Heteroskedasticity Tests**", expanded=False):
+            col1, col2 = st.columns(2)
             
-            3. **Autocorrelation (Durbin-Watson)**:
-               - DW ≈ 2: No autocorrelation (good)
-               - DW < 1.5: Positive autocorrelation
-               - DW > 2.5: Negative autocorrelation
+            with col1:
+                st.markdown("#### Breusch-Pagan Test")
+                if bp_available:
+                    st.metric("BP Statistic", f"{bp_stat:.4f}")
+                    st.metric("P-value", f"{bp_pvalue:.4f}")
+                    
+                    if bp_pvalue > 0.05:
+                        st.success("✅ Homoskedastic (constant variance)")
+                    else:
+                        st.warning("⚠️ Heteroskedasticity detected")
+                else:
+                    st.info("Test unavailable")
+                
+                st.markdown("#### White Test")
+                if white_available:
+                    st.metric("White Statistic", f"{white_stat:.4f}")
+                    st.metric("P-value", f"{white_pvalue:.4f}")
+                    
+                    if white_pvalue > 0.05:
+                        st.success("✅ Homoskedastic")
+                    else:
+                        st.warning("⚠️ Heteroskedasticity detected")
+                else:
+                    st.info("Test unavailable")
             
-            4. **Multicollinearity (VIF)**:
-               - VIF < 5: No problem
-               - VIF 5-10: Moderate multicollinearity
-               - VIF > 10: Severe multicollinearity
-            """)
+            with col2:
+                st.markdown("#### What does this mean?")
+                st.info("""
+                **Heteroskedasticity** means error variance is not constant.
+                
+                **Consequences:**
+                - OLS estimates still unbiased
+                - Standard errors are WRONG
+                - t-tests and F-tests invalid
+                
+                **Solutions:**
+                1. ✅ **Use Robust Standard Errors** (White/HC3)
+                   - Check the box in Tab 1
+                   - This fixes inference without changing estimates
+                
+                2. Try transformations (log Y)
+                
+                3. Weighted Least Squares (WLS)
+                
+                4. Add polynomial terms
+                """)
+                
+                if not use_robust and (not bp_pass or not white_pass):
+                    st.error("🚨 **Action Required:** Enable 'Use Robust Standard Errors' in Tab 1!")
+        
+        # Autocorrelation Tests
+        with st.expander("🔄 **Autocorrelation Tests**", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### Durbin-Watson Test")
+                st.metric("DW Statistic", f"{dw_stat:.4f}")
+                
+                if 1.5 < dw_stat < 2.5:
+                    st.success("✅ No autocorrelation")
+                elif dw_stat < 1.5:
+                    st.warning("⚠️ Positive autocorrelation")
+                else:
+                    st.warning("⚠️ Negative autocorrelation")
+                
+                st.caption("DW ≈ 2 indicates no autocorrelation")
+                
+                st.markdown("#### Ljung-Box Test")
+                if lb_available:
+                    st.dataframe(lb_test[['lb_stat', 'lb_pvalue']].head(5), use_container_width=True)
+                    
+                    if lb_pass:
+                        st.success("✅ No autocorrelation at any lag")
+                    else:
+                        st.warning("⚠️ Autocorrelation detected")
+                else:
+                    st.info("Test unavailable")
+            
+            with col2:
+                st.markdown("#### What does this mean?")
+                st.info("""
+                **Autocorrelation** means errors are correlated over time.
+                
+                **Common in:**
+                - Time series data
+                - Panel data
+                
+                **Consequences:**
+                - OLS estimates still unbiased
+                - Standard errors are WRONG
+                - Confidence intervals too narrow
+                
+                **Solutions:**
+                1. Use HAC standard errors (Newey-West)
+                
+                2. Add lagged dependent variable
+                
+                3. Include time trend
+                
+                4. Check for omitted variables
+                
+                5. Use ARIMA or time series models
+                """)
+        
+        # Specification Test
+        with st.expander("🔧 **Specification Test (RESET)**", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### Ramsey RESET Test")
+                if reset_available:
+                    st.metric("F-statistic", f"{reset_stat:.4f}")
+                    st.metric("P-value", f"{reset_pvalue:.4f}")
+                    
+                    if reset_pvalue > 0.05:
+                        st.success("✅ Model specification appears correct")
+                    else:
+                        st.warning("⚠️ Possible specification error")
+                else:
+                    st.info("Test unavailable")
+            
+            with col2:
+                st.markdown("#### What does this mean?")
+                st.info("""
+                **RESET Test** checks if your model is missing:
+                - Non-linear terms (X², X³)
+                - Interaction terms (X₁ × X₂)
+                - Important variables
+                
+                **If test fails:**
+                1. Add polynomial terms (X²)
+                
+                2. Try log transformation
+                
+                3. Add interaction terms
+                
+                4. Check for omitted variables
+                
+                5. Consider non-linear models
+                """)
+        
+        # Multicollinearity
+        with st.expander("🔗 **Multicollinearity (VIF)**", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### Variance Inflation Factor")
+                if vif_available:
+                    st.dataframe(vif_data.style.format({'VIF': '{:.2f}'}), 
+                               use_container_width=True, hide_index=True)
+                    
+                    if (vif_data["VIF"] > 10).any():
+                        st.warning("⚠️ High multicollinearity (VIF > 10)")
+                    elif (vif_data["VIF"] > 5).any():
+                        st.info("ℹ️ Moderate multicollinearity (VIF 5-10)")
+                    else:
+                        st.success("✅ No severe multicollinearity (VIF < 5)")
+                else:
+                    st.info("VIF requires multiple independent variables")
+            
+            with col2:
+                st.markdown("#### What does this mean?")
+                st.info("""
+                **Multicollinearity** means X variables are highly correlated.
+                
+                **VIF Interpretation:**
+                - VIF < 5: No problem ✅
+                - VIF 5-10: Moderate concern ⚠️
+                - VIF > 10: Severe problem 🚨
+                
+                **Consequences:**
+                - Estimates still unbiased
+                - Standard errors inflated
+                - Coefficients unstable
+                - Hard to isolate individual effects
+                
+                **Solutions:**
+                1. Drop one of the correlated variables
+                
+                2. Combine correlated variables (PCA)
+                
+                3. Collect more data
+                
+                4. Accept it (if prediction is the goal)
+                """)
+    
     else:
         st.info("Run regression first to see diagnostics.")
 
@@ -415,63 +786,337 @@ with tab3:
         
         residuals = model.resid
         fitted = model.fittedvalues
+        influence = model.get_influence()
+        standardized_resid = influence.resid_studentized_internal
         
-        # Create subplots
+        # Create enhanced subplots
         fig = make_subplots(
             rows=2, cols=2,
-            subplot_titles=(txt['fitted_vs_residuals'], txt['qq_plot'], 
-                          txt['histogram'], "Residuals Over Time")
+            subplot_titles=(
+                "Residuals vs Fitted",
+                "Q-Q Plot (Normality)",
+                "Scale-Location (Homoskedasticity)",
+                "Residuals Histogram"
+            )
         )
         
-        # 1. Fitted vs Residuals
-        fig.add_trace(go.Scatter(x=fitted, y=residuals, mode='markers', name='Residuals',
-                                marker=dict(size=6, opacity=0.6)), row=1, col=1)
+        # 1. Residuals vs Fitted
+        fig.add_trace(go.Scatter(
+            x=fitted, 
+            y=residuals, 
+            mode='markers',
+            name='Residuals',
+            marker=dict(size=6, opacity=0.6, color='darkblue')
+        ), row=1, col=1)
         fig.add_hline(y=0, line_dash="dash", line_color="red", row=1, col=1)
+        
+        # Add LOWESS smoothing
+        from scipy.signal import savgol_filter
+        if len(fitted) > 10:
+            sorted_idx = fitted.argsort()
+            fitted_sorted = fitted.iloc[sorted_idx]
+            resid_sorted = residuals.iloc[sorted_idx]
+            try:
+                smoothed = savgol_filter(resid_sorted, window_length=min(51, len(fitted)//3*2+1), polyorder=3)
+                fig.add_trace(go.Scatter(
+                    x=fitted_sorted,
+                    y=smoothed,
+                    mode='lines',
+                    name='Trend',
+                    line=dict(color='orange', width=2)
+                ), row=1, col=1)
+            except:
+                pass
         
         # 2. Q-Q Plot
         qq = stats.probplot(residuals, dist="norm")
-        fig.add_trace(go.Scatter(x=qq[0][0], y=qq[0][1], mode='markers', name='Q-Q',
-                                marker=dict(size=6, opacity=0.6)), row=1, col=2)
-        fig.add_trace(go.Scatter(x=qq[0][0], y=qq[1][1] + qq[1][0]*qq[0][0], 
-                                mode='lines', name='Normal', line=dict(color='red')), row=1, col=2)
+        fig.add_trace(go.Scatter(
+            x=qq[0][0], 
+            y=qq[0][1], 
+            mode='markers',
+            name='Q-Q',
+            marker=dict(size=6, opacity=0.6, color='darkblue')
+        ), row=1, col=2)
+        fig.add_trace(go.Scatter(
+            x=qq[0][0], 
+            y=qq[1][1] + qq[1][0]*qq[0][0],
+            mode='lines',
+            name='Normal',
+            line=dict(color='red', width=2)
+        ), row=1, col=2)
         
-        # 3. Histogram
-        fig.add_trace(go.Histogram(x=residuals, name='Histogram', nbinsx=30), row=2, col=1)
+        # 3. Scale-Location (sqrt of standardized residuals)
+        sqrt_abs_std_resid = np.sqrt(np.abs(standardized_resid))
+        fig.add_trace(go.Scatter(
+            x=fitted,
+            y=sqrt_abs_std_resid,
+            mode='markers',
+            name='Scale-Location',
+            marker=dict(size=6, opacity=0.6, color='darkblue')
+        ), row=2, col=1)
         
-        # 4. Residuals over time
-        fig.add_trace(go.Scatter(y=residuals, mode='lines+markers', name='Time Series',
-                                marker=dict(size=4)), row=2, col=2)
-        fig.add_hline(y=0, line_dash="dash", line_color="red", row=2, col=2)
+        # Add trend line
+        if len(fitted) > 10:
+            try:
+                sorted_idx = fitted.argsort()
+                fitted_sorted = fitted.iloc[sorted_idx]
+                sqrt_sorted = sqrt_abs_std_resid.iloc[sorted_idx]
+                smoothed = savgol_filter(sqrt_sorted, window_length=min(51, len(fitted)//3*2+1), polyorder=3)
+                fig.add_trace(go.Scatter(
+                    x=fitted_sorted,
+                    y=smoothed,
+                    mode='lines',
+                    name='Trend',
+                    line=dict(color='orange', width=2)
+                ), row=2, col=1)
+            except:
+                pass
         
+        # 4. Histogram
+        fig.add_trace(go.Histogram(
+            x=residuals,
+            name='Histogram',
+            nbinsx=30,
+            marker=dict(color='darkblue', opacity=0.7)
+        ), row=2, col=2)
+        
+        # Add normal curve overlay
+        x_range = np.linspace(residuals.min(), residuals.max(), 100)
+        normal_curve = stats.norm.pdf(x_range, residuals.mean(), residuals.std())
+        # Scale to match histogram
+        normal_curve = normal_curve * len(residuals) * (residuals.max() - residuals.min()) / 30
+        fig.add_trace(go.Scatter(
+            x=x_range,
+            y=normal_curve,
+            mode='lines',
+            name='Normal',
+            line=dict(color='red', width=2)
+        ), row=2, col=2)
+        
+        # Update axes
         fig.update_xaxes(title_text="Fitted Values", row=1, col=1)
         fig.update_yaxes(title_text="Residuals", row=1, col=1)
         fig.update_xaxes(title_text="Theoretical Quantiles", row=1, col=2)
         fig.update_yaxes(title_text="Sample Quantiles", row=1, col=2)
-        fig.update_xaxes(title_text="Residuals", row=2, col=1)
-        fig.update_xaxes(title_text="Observation", row=2, col=2)
-        fig.update_yaxes(title_text="Residuals", row=2, col=2)
+        fig.update_xaxes(title_text="Fitted Values", row=2, col=1)
+        fig.update_yaxes(title_text="√|Standardized Residuals|", row=2, col=1)
+        fig.update_xaxes(title_text="Residuals", row=2, col=2)
+        fig.update_yaxes(title_text="Frequency", row=2, col=2)
         
         fig.update_layout(height=800, showlegend=False)
         
         st.plotly_chart(fig, use_container_width=True)
         
+        # Interpretation guide
+        with st.expander("📚 How to Interpret These Plots"):
+            st.markdown("""
+            ### 1. Residuals vs Fitted
+            **What to look for:**
+            - Random scatter around zero ✅
+            - No patterns (U-shape, funnel) ⚠️
+            
+            **If you see:**
+            - **Funnel shape:** Heteroskedasticity → Use robust SE
+            - **U-shape:** Non-linearity → Add polynomial terms
+            - **Outliers:** Check influential points in Tab 4
+            
+            ### 2. Q-Q Plot
+            **What to look for:**
+            - Points follow the red line ✅
+            - Deviations at tails are common
+            
+            **If you see:**
+            - **S-curve:** Heavy tails → Consider robust regression
+            - **Systematic deviation:** Non-normality → Transform Y
+            
+            ### 3. Scale-Location
+            **What to look for:**
+            - Horizontal line ✅
+            - Equal spread across fitted values
+            
+            **If you see:**
+            - **Upward/downward trend:** Heteroskedasticity
+            - **Funnel:** Variance increases with fitted values
+            
+            ### 4. Histogram
+            **What to look for:**
+            - Bell-shaped curve ✅
+            - Matches red normal curve
+            
+            **If you see:**
+            - **Skewed:** Transform Y (log, sqrt)
+            - **Bimodal:** Missing categorical variable
+            """)
+        
         # Residual statistics
         st.markdown("### Residual Statistics")
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Mean", f"{residuals.mean():.4f}")
-        col2.metric("Std Dev", f"{residuals.std():.4f}")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        col1.metric("Mean", f"{residuals.mean():.6f}",
+                   help="Should be close to zero")
+        col2.metric("Std Dev", f"{residuals.std():.4f}",
+                   help="Measure of model error")
         col3.metric("Min", f"{residuals.min():.4f}")
         col4.metric("Max", f"{residuals.max():.4f}")
+        col5.metric("Range", f"{residuals.max() - residuals.min():.4f}")
+    
     else:
         st.info("Run regression first to see residual analysis.")
 
-# --- STORY & USE CASES ---
-if 'story_title' in txt:
-    st.divider()
-    with st.expander(txt['story_title']):
-        st.markdown(txt['story_meaning'])
-        st.info(txt['story_insight'])
-        st.markdown(txt['story_users'])
-        st.write(txt['use_researcher'])
-        st.write(txt['use_analyst'])
-        st.write(txt['use_student'])
+# ========== TAB 4: INFLUENCE & OUTLIERS ==========
+with tab4:
+    if 'model' in st.session_state:
+        model = st.session_state['model']
+        Y = st.session_state['Y']
+        X = st.session_state['X']
+        
+        st.markdown(f"### {txt['influence_plots']}")
+        
+        influence = model.get_influence()
+        
+        # Cook's Distance
+        cooks_d = influence.cooks_distance[0]
+        leverage = influence.hat_matrix_diag
+        standardized_resid = influence.resid_studentized_internal
+        
+        # Thresholds
+        cooks_threshold = 4 / len(X)
+        leverage_threshold = 2 * (len(X.columns) + 1) / len(X)
+        
+        # Identify influential points
+        influential_cooks = cooks_d > cooks_threshold
+        high_leverage = leverage > leverage_threshold
+        outliers = np.abs(standardized_resid) > 2
+        
+        # Summary metrics
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Influential Points", f"{influential_cooks.sum()}",
+                   help=f"Cook's D > {cooks_threshold:.4f}")
+        col2.metric("High Leverage", f"{high_leverage.sum()}",
+                   help=f"Leverage > {leverage_threshold:.4f}")
+        col3.metric("Outliers", f"{outliers.sum()}",
+                   help="|Std Residual| > 2")
+        col4.metric("Problematic", f"{(influential_cooks & high_leverage).sum()}",
+                   help="Both influential AND high leverage")
+        
+        st.divider()
+        
+        # Create influence plots
+        fig = make_subplots(
+            rows=1, cols=2,
+            subplot_titles=("Cook's Distance", "Leverage vs Standardized Residuals")
+        )
+        
+        # 1. Cook's Distance
+        colors = ['red' if x else 'blue' for x in influential_cooks]
+        fig.add_trace(go.Bar(
+            x=list(range(len(cooks_d))),
+            y=cooks_d,
+            name="Cook's D",
+            marker=dict(color=colors, opacity=0.7)
+        ), row=1, col=1)
+        fig.add_hline(y=cooks_threshold, line_dash="dash", line_color="red", 
+                     annotation_text=f"Threshold ({cooks_threshold:.4f})", row=1, col=1)
+        
+        # 2. Leverage vs Residuals
+        colors = []
+        for i in range(len(leverage)):
+            if influential_cooks[i] and high_leverage[i]:
+                colors.append('red')  # Most problematic
+            elif high_leverage[i]:
+                colors.append('orange')  # High leverage
+            elif outliers[i]:
+                colors.append('yellow')  # Outlier
+            else:
+                colors.append('blue')  # Normal
+        
+        fig.add_trace(go.Scatter(
+            x=leverage,
+            y=standardized_resid,
+            mode='markers',
+            name='Observations',
+            marker=dict(size=8, color=colors, opacity=0.7),
+            text=[f"Obs {i}" for i in range(len(leverage))],
+            hovertemplate='<b>%{text}</b><br>Leverage: %{x:.4f}<br>Std Residual: %{y:.4f}'
+        ), row=1, col=2)
+        
+        # Add threshold lines
+        fig.add_hline(y=2, line_dash="dash", line_color="red", row=1, col=2)
+        fig.add_hline(y=-2, line_dash="dash", line_color="red", row=1, col=2)
+        fig.add_vline(x=leverage_threshold, line_dash="dash", line_color="red", row=1, col=2)
+        
+        # Update axes
+        fig.update_xaxes(title_text="Observation Index", row=1, col=1)
+        fig.update_yaxes(title_text="Cook's Distance", row=1, col=1)
+        fig.update_xaxes(title_text="Leverage", row=1, col=2)
+        fig.update_yaxes(title_text="Standardized Residuals", row=1, col=2)
+        
+        fig.update_layout(height=500, showlegend=False)
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Interpretation
+        with st.expander("📚 Understanding Influence Diagnostics"):
+            st.markdown("""
+            ### Cook's Distance
+            **Measures:** How much fitted values change if observation is removed
+            
+            **Threshold:** 4/n = {:.4f}
+            
+            **Interpretation:**
+            - **High Cook's D:** Observation is influential
+            - **Action:** Investigate why (data error? genuine outlier?)
+            
+            ### Leverage
+            **Measures:** How far X values are from mean
+            
+            **Threshold:** 2(k+1)/n = {:.4f}
+            
+            **Interpretation:**
+            - **High leverage:** Unusual X values
+            - **Not necessarily bad** if residual is small
+            
+            ### Quadrant Analysis (Right Plot)
+            - **Top-right (RED):** 🚨 Most problematic - High leverage + outlier
+            - **Top-left (YELLOW):** Outlier but low leverage
+            - **Bottom-right (ORANGE):** High leverage but not outlier
+            - **Bottom-left (BLUE):** Normal observations
+            
+            ### What to Do?
+            1. **Investigate red points** - Check for data entry errors
+            2. **Re-run without influential points** - See if results change
+            3. **Report sensitivity** - "Results robust to outlier removal"
+            4. **Consider robust regression** - Less sensitive to outliers
+            """.format(cooks_threshold, leverage_threshold))
+        
+        # List of influential observations
+        if influential_cooks.sum() > 0:
+            st.markdown("### Influential Observations")
+            
+            influential_df = pd.DataFrame({
+                'Index': np.where(influential_cooks)[0],
+                "Cook's D": cooks_d[influential_cooks],
+                'Leverage': leverage[influential_cooks],
+                'Std Residual': standardized_resid[influential_cooks]
+            }).sort_values("Cook's D", ascending=False)
+            
+            st.dataframe(influential_df.style.format({
+                "Cook's D": '{:.4f}',
+                'Leverage': '{:.4f}',
+                'Std Residual': '{:.4f}'
+            }), use_container_width=True, hide_index=True)
+            
+            st.warning("""
+            ⚠️ **Recommendation:** Investigate these observations:
+            1. Check for data entry errors
+            2. Verify if they represent genuine outliers
+            3. Re-run regression without them to check sensitivity
+            4. Consider using robust regression methods
+            """)
+    
+    else:
+        st.info("Run regression first to see influence diagnostics.")
+
+# Footer
+st.divider()
+st.caption("🧪 **Professional Econometrics Lab** - Built with statsmodels, scipy, and plotly")
+st.caption("💡 **Tip:** Use robust standard errors when heteroskedasticity is detected for valid inference!")
