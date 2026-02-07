@@ -215,8 +215,8 @@ with tab1:
             # Display results
             st.markdown(f"### {txt['regression_results']}")
             
-            # Choose which model to display
-            display_model = model_robust if use_robust else model
+            # Choose which model to display (use robust if available and requested)
+            display_model = model_robust if (use_robust and model_robust is not None) else model
             
             col1, col2 = st.columns([1, 1])
             
